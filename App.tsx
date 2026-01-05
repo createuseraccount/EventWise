@@ -10,6 +10,7 @@ import Timeline from './components/Shared/Timeline';
 import GuestIntelligence from './components/Shared/GuestIntelligence';
 import BudgetSplit from './components/Shared/BudgetSplit';
 import VendorManager from './components/Shared/VendorManager';
+import { HowToUse, SponsorUs, About, Contact, PrivacyPolicy, Terms } from './components/InfoPages';
 import { Plan, EventType, WeddingPlan } from './types';
 import { storage } from './utils/storage';
 import { 
@@ -81,6 +82,10 @@ const App: React.FC = () => {
     setCurrentPlan(null);
     setIsCreatingWedding(false);
     setIsCreatingEvent(false);
+    if (tab === 'create') {
+        // Default to showing choices if clicking "New Planning"
+        // Actually the logic below handles the "LandingPage" rendering for home/create
+    }
   };
 
   const handleUpdatePlan = (updatedPlan: Plan) => {
@@ -116,7 +121,6 @@ const App: React.FC = () => {
   }, [plans, searchQuery, filterType]);
 
   const getBookingStatus = (plan: Plan) => {
-    // We check both the master checklist AND the new Vendors module
     const checkMaster = (keywords: string[]) => 
       plan.checklist.some(item => 
         keywords.some(k => item.task.toLowerCase().includes(k)) && item.completed
@@ -125,7 +129,6 @@ const App: React.FC = () => {
     const checkVendors = (category: string) => {
       if (!plan.vendors) return false;
       const v = plan.vendors.find(vend => vend.category === category);
-      // Considered booked if contract is signed or advance paid (using logic on default tasks)
       return v?.checklist.some(i => i.completed && (i.task.toLowerCase().includes('contract') || i.task.toLowerCase().includes('advance') || i.task.toLowerCase().includes('shortlisted')));
     };
 
@@ -138,11 +141,14 @@ const App: React.FC = () => {
 
   // Content rendering based on state
   let content;
+  
+  // High-priority creation wizards
   if (isCreatingWedding) {
     content = <WeddingWizard onComplete={handlePlanComplete} onCancel={() => setIsCreatingWedding(false)} />;
   } else if (isCreatingEvent) {
     content = <GeneralEventPlanner onComplete={handlePlanComplete} onCancel={() => setIsCreatingEvent(false)} />;
   } else if (currentPlan) {
+    // Current active plan view
     const showSplitTab = currentPlan.type === EventType.WEDDING && (currentPlan as WeddingPlan).sideSplitEnabled;
     content = (
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -189,7 +195,6 @@ const App: React.FC = () => {
               <div>
                 <div className="flex justify-between mb-2"><label className="text-sm font-semibold text-slate-700">Total Guests</label><span className="text-sm font-bold text-indigo-600">{currentPlan.guestCount}</span></div>
                 <input type="range" min="1" max="2000" step="1" value={currentPlan.guestCount} onChange={(e) => handleUpdatePlan({...currentPlan, guestCount: Number(e.target.value)})} className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
-                <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-tighter">Adjusting this will override guest category distributions.</p>
               </div>
               <div>
                 <div className="flex justify-between mb-2"><label className="text-sm font-semibold text-slate-700">Contingency Buffer</label><span className="text-sm font-bold text-indigo-600">{currentPlan.contingencyPercent}%</span></div>
@@ -204,77 +209,97 @@ const App: React.FC = () => {
         </div>
       </div>
     );
-  } else if (activeTab === 'home' || (activeTab === 'list' && plans.length === 0)) {
-    content = <LandingPage onCreateWedding={() => setIsCreatingWedding(true)} onCreateEvent={() => setIsCreatingEvent(true)} />;
-  } else if (activeTab === 'list') {
-    content = (
-      <div className="space-y-6 animate-in fade-in duration-500">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div><h1 className="text-3xl font-black text-slate-900">Your Plans</h1><p className="text-slate-500">All your event calculations in one place</p></div>
-          <div className="flex gap-2">
-            <button onClick={() => setIsCreatingWedding(true)} className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-rose-100 whitespace-nowrap hover:bg-rose-600 transition-colors"><Plus size={16} /> Wedding</button>
-            <button onClick={() => setIsCreatingEvent(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 whitespace-nowrap hover:bg-indigo-700 transition-colors"><Plus size={16} /> Event</button>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5">
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Search className="h-5 w-5 text-slate-400" /></div>
-            <input ref={searchInputRef} type="text" className="block w-full pl-12 pr-20 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 text-sm transition-all" placeholder="Search plans..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-            <div className="absolute inset-y-0 right-0 pr-4 flex items-center gap-2">
-              {searchQuery ? <button onClick={() => setSearchQuery('')} className="p-1 text-slate-400 hover:text-slate-600"><X size={16} /></button> : <div className="hidden md:block text-[10px] text-slate-400 font-bold uppercase tracking-tight">Press /</div>}
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar flex-1">
-              <Filter size={14} className="text-slate-400" /><FilterChip label="All" active={filterType === 'ALL'} onClick={() => setFilterType('ALL')} />
-              {(Object.keys(EventType) as Array<keyof typeof EventType>).map(type => <FilterChip key={type} label={type.charAt(0) + type.slice(1).toLowerCase()} active={filterType === EventType[type]} onClick={() => setFilterType(EventType[type])} />)}
-            </div>
-            <div className="text-[11px] font-bold text-slate-400">{filteredPlans.length} {filteredPlans.length === 1 ? 'Plan' : 'Plans'} found</div>
-          </div>
-        </div>
-
-        {filteredPlans.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPlans.map(plan => {
-              const total = plan.categories.reduce((acc, cat) => acc + cat.items.reduce((iAcc, item) => iAcc + item.cost, 0), 0) * (1 + plan.contingencyPercent/100);
-              const bookings = getBookingStatus(plan);
-              return (
-                <div key={plan.id} onClick={() => setCurrentPlan(plan)} className="group bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col">
-                  <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-10 ${plan.type === EventType.WEDDING ? 'bg-rose-500' : 'bg-indigo-500'}`} />
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${plan.type === EventType.WEDDING ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-600'}`}>{EVENT_TYPE_ICONS[plan.type]}{plan.type}</div>
-                    <button onClick={(e) => handleDeletePlan(plan.id, e)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors z-10"><Trash2 size={16} /></button>
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">{plan.name}</h3>
-                  <div className="flex items-center gap-3 text-xs text-slate-400 font-medium mb-4"><span>{plan.guestCount} Guests</span><span>•</span><span className="flex items-center gap-1"><Clock size={12} /> {plan.timeline?.length || 0} slots</span></div>
-                  
-                  <div className="flex items-center gap-2 mb-6 no-print">
-                    <BookingIcon icon={<MapPin size={12} />} label="Venue" booked={bookings.venue} />
-                    <BookingIcon icon={<Utensils size={12} />} label="Catering" booked={bookings.caterer} />
-                    <BookingIcon icon={<Camera size={12} />} label="Photo" booked={bookings.photographer} />
-                  </div>
-
-                  <div className="mt-auto flex items-end justify-between">
-                    <div><p className="text-[10px] font-bold text-slate-400 uppercase">Estimated Budget</p><p className="text-xl font-black text-slate-900">{CURRENCY}{Math.round(total).toLocaleString('en-IN')}</p></div>
-                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300"><ExternalLink size={20} /></div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="bg-white rounded-[40px] p-12 md:p-20 border border-dashed border-slate-200 text-center space-y-6">
-            <div className="w-24 h-24 bg-slate-50 text-slate-300 rounded-[32px] flex items-center justify-center mx-auto"><Search size={48} className="opacity-50" /></div>
-            <div className="max-w-xs mx-auto text-center"><h3 className="text-xl font-bold text-slate-900 mb-2">No matching plans</h3><p className="text-slate-500 text-sm">Clear your search or filter to see all your events.</p></div>
-          </div>
-        )}
-      </div>
-    );
   } else {
-    // Default fallback
-    content = <LandingPage onCreateWedding={() => setIsCreatingWedding(true)} onCreateEvent={() => setIsCreatingEvent(true)} />;
+    // Tab-based static/informational content
+    switch(activeTab) {
+      case 'home':
+      case 'create':
+        content = <LandingPage onCreateWedding={() => setIsCreatingWedding(true)} onCreateEvent={() => setIsCreatingEvent(true)} />;
+        break;
+      case 'list':
+        content = (
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div><h1 className="text-3xl font-black text-slate-900">Your Plans</h1><p className="text-slate-500">All your event calculations in one place</p></div>
+              <div className="flex gap-2">
+                <button onClick={() => setIsCreatingWedding(true)} className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-rose-100 whitespace-nowrap hover:bg-rose-600 transition-colors"><Plus size={16} /> Wedding</button>
+                <button onClick={() => setIsCreatingEvent(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 whitespace-nowrap hover:bg-indigo-700 transition-colors"><Plus size={16} /> Event</button>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5">
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Search className="h-5 w-5 text-slate-400" /></div>
+                <input ref={searchInputRef} type="text" className="block w-full pl-12 pr-20 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 text-sm transition-all" placeholder="Search plans..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar flex-1">
+                  <Filter size={14} className="text-slate-400" /><FilterChip label="All" active={filterType === 'ALL'} onClick={() => setFilterType('ALL')} />
+                  {(Object.keys(EventType) as Array<keyof typeof EventType>).map(type => <FilterChip key={type} label={type.charAt(0) + type.slice(1).toLowerCase()} active={filterType === EventType[type]} onClick={() => setFilterType(EventType[type])} />)}
+                </div>
+              </div>
+            </div>
+
+            {filteredPlans.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredPlans.map(plan => {
+                  const total = plan.categories.reduce((acc, cat) => acc + cat.items.reduce((iAcc, item) => iAcc + item.cost, 0), 0) * (1 + plan.contingencyPercent/100);
+                  const bookings = getBookingStatus(plan);
+                  return (
+                    <div key={plan.id} onClick={() => setCurrentPlan(plan)} className="group bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col">
+                      <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-10 ${plan.type === EventType.WEDDING ? 'bg-rose-500' : 'bg-indigo-500'}`} />
+                      <div className="flex items-start justify-between mb-4">
+                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${plan.type === EventType.WEDDING ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-600'}`}>{EVENT_TYPE_ICONS[plan.type]}{plan.type}</div>
+                        <button onClick={(e) => handleDeletePlan(plan.id, e)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors z-10"><Trash2 size={16} /></button>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">{plan.name}</h3>
+                      <div className="flex items-center gap-3 text-xs text-slate-400 font-medium mb-4"><span>{plan.guestCount} Guests</span><span>•</span><span className="flex items-center gap-1"><Clock size={12} /> {plan.timeline?.length || 0} slots</span></div>
+                      
+                      <div className="flex items-center gap-2 mb-6 no-print">
+                        <BookingIcon icon={<MapPin size={12} />} label="Venue" booked={bookings.venue} />
+                        <BookingIcon icon={<Utensils size={12} />} label="Catering" booked={bookings.caterer} />
+                        <BookingIcon icon={<Camera size={12} />} label="Photo" booked={bookings.photographer} />
+                      </div>
+
+                      <div className="mt-auto flex items-end justify-between">
+                        <div><p className="text-[10px] font-bold text-slate-400 uppercase">Estimated Budget</p><p className="text-xl font-black text-slate-900">{CURRENCY}{Math.round(total).toLocaleString('en-IN')}</p></div>
+                        <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300"><ExternalLink size={20} /></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="bg-white rounded-[40px] p-12 md:p-20 border border-dashed border-slate-200 text-center space-y-6">
+                <div className="w-24 h-24 bg-slate-50 text-slate-300 rounded-[32px] flex items-center justify-center mx-auto"><Search size={48} className="opacity-50" /></div>
+                <div className="max-w-xs mx-auto text-center"><h3 className="text-xl font-bold text-slate-900 mb-2">No matching plans</h3><p className="text-slate-500 text-sm">Clear your search or filter to see all your events.</p></div>
+              </div>
+            )}
+          </div>
+        );
+        break;
+      case 'how-to':
+        content = <HowToUse />;
+        break;
+      case 'sponsor':
+        content = <SponsorUs />;
+        break;
+      case 'about':
+        content = <About />;
+        break;
+      case 'contact':
+        content = <Contact />;
+        break;
+      case 'privacy':
+        content = <PrivacyPolicy />;
+        break;
+      case 'terms':
+        content = <Terms />;
+        break;
+      default:
+        content = <LandingPage onCreateWedding={() => setIsCreatingWedding(true)} onCreateEvent={() => setIsCreatingEvent(true)} />;
+    }
   }
 
   return (
