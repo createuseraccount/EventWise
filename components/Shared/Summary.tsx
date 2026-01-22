@@ -63,7 +63,6 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
     document.body.removeChild(link);
   };
 
-  // Management Functions
   const updateItem = (catIdx: number, itemIdx: number, field: string, value: any) => {
     const newCategories = [...plan.categories];
     const item = { ...newCategories[catIdx].items[itemIdx], [field]: value };
@@ -106,48 +105,41 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
   const sideSplit = isWedding && (plan as WeddingPlan).sideSplitEnabled;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-2xl border shadow-sm flex flex-col justify-center">
-          <p className="text-sm text-slate-500 font-medium mb-1">Total Estimated Budget</p>
-          <h2 className="text-3xl font-bold text-indigo-600">{CURRENCY}{Math.round(total).toLocaleString('en-IN')}</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+        <div className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center">
+          <p className="text-[10px] md:text-sm text-slate-500 font-bold uppercase tracking-widest mb-1">Total Estimated</p>
+          <h2 className="text-2xl md:text-3xl font-black text-indigo-600">{CURRENCY}{Math.round(total).toLocaleString('en-IN')}</h2>
         </div>
-        <div className="bg-white p-6 rounded-2xl border shadow-sm flex flex-col justify-center">
-          <p className="text-sm text-slate-500 font-medium mb-1">Cost Per Guest</p>
-          <h2 className="text-2xl font-bold text-slate-900">{CURRENCY}{Math.round(perGuest).toLocaleString('en-IN')}</h2>
+        <div className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center">
+          <p className="text-[10px] md:text-sm text-slate-500 font-bold uppercase tracking-widest mb-1">Per Guest</p>
+          <h2 className="text-xl md:text-2xl font-black text-slate-900">{CURRENCY}{Math.round(perGuest).toLocaleString('en-IN')}</h2>
         </div>
-        <div className="bg-white p-6 rounded-2xl border shadow-sm flex flex-col justify-center">
-          <p className="text-sm text-slate-500 font-medium mb-1">Guests</p>
-          <h2 className="text-2xl font-bold text-slate-900">{plan.guestCount} People</h2>
+        <div className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center">
+          <p className="text-[10px] md:text-sm text-slate-500 font-bold uppercase tracking-widest mb-1">Guest Count</p>
+          <h2 className="text-xl md:text-2xl font-black text-slate-900">{plan.guestCount} People</h2>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column: Chart & Export */}
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl border shadow-sm h-fit">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold">Budget Allocation</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="space-y-4 md:space-y-6">
+          <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm h-fit">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base md:text-lg font-black uppercase tracking-tight">Allocation</h3>
               <div className="no-print">
-                <button 
-                  onClick={handlePrintPDF} 
-                  className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
-                  title="Quick Print"
-                >
-                  <Printer size={18} />
-                </button>
+                <button onClick={handlePrintPDF} className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"><Printer size={18} /></button>
               </div>
             </div>
-            <div className="h-64 mb-6">
+            <div className="h-48 md:h-64 mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={chartData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
+                    innerRadius={window.innerWidth < 768 ? 40 : 60}
+                    outerRadius={window.innerWidth < 768 ? 60 : 80}
                     paddingAngle={5}
                     dataKey="value"
                   >
@@ -155,23 +147,17 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => `${CURRENCY}${value.toLocaleString('en-IN')}`}
-                  />
-                  <Legend verticalAlign="bottom" height={36}/>
+                  <Tooltip formatter={(value: number) => `${CURRENCY}${value.toLocaleString('en-IN')}`} />
+                  <Legend verticalAlign="bottom" height={36} iconSize={10} wrapperStyle={{ fontSize: '10px' }}/>
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
             <div className="space-y-3 pt-4 border-t border-slate-100 no-print">
-               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Quick Suggestions</p>
-               <div className="flex flex-wrap gap-2">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add missing pieces</p>
+               <div className="flex flex-wrap gap-1.5">
                   {SUGGESTIONS.map(s => (
-                    <button 
-                      key={s}
-                      onClick={() => addItem(0, s)}
-                      className="px-3 py-1 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border border-slate-200 rounded-full text-xs transition-all"
-                    >
+                    <button key={s} onClick={() => addItem(0, s)} className="px-2.5 py-1 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border border-slate-200 rounded-full text-[10px] font-bold transition-all">
                       + {s}
                     </button>
                   ))}
@@ -179,92 +165,57 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
             </div>
           </div>
 
-          {/* Export Section */}
-          <div className="bg-white p-6 rounded-2xl border shadow-sm no-print">
-            <h3 className="text-lg font-bold mb-4">Export & Share</h3>
+          <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm no-print">
+            <h3 className="text-base md:text-lg font-black mb-4">Share Plan</h3>
             <div className="grid grid-cols-2 gap-3">
-              <button 
-                onClick={handleExportCSV}
-                className="flex items-center justify-center gap-2 p-3 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-sm hover:bg-emerald-100 transition-all border border-emerald-100"
-              >
-                <FileSpreadsheet size={18} /> Export CSV
-              </button>
-              <button 
-                onClick={handlePrintPDF}
-                className="flex items-center justify-center gap-2 p-3 bg-rose-50 text-rose-700 rounded-xl font-bold text-sm hover:bg-rose-100 transition-all border border-rose-100"
-              >
-                <FileText size={18} /> Download PDF
-              </button>
+              <button onClick={handleExportCSV} className="flex items-center justify-center gap-2 p-3 bg-emerald-50 text-emerald-700 rounded-xl font-black text-xs hover:bg-emerald-100 transition-all border border-emerald-100"><FileSpreadsheet size={16} /> CSV</button>
+              <button onClick={handlePrintPDF} className="flex items-center justify-center gap-2 p-3 bg-rose-50 text-rose-700 rounded-xl font-black text-xs hover:bg-rose-100 transition-all border border-rose-100"><FileText size={16} /> PDF</button>
             </div>
-            <p className="text-[10px] text-slate-400 mt-3 font-medium uppercase tracking-widest text-center">
-              Professional reports ready for printing
-            </p>
           </div>
         </div>
 
-        {/* Right Column: Itemized List */}
-        <div className="bg-white p-6 rounded-2xl border shadow-sm">
+        <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold">Itemized Details</h3>
+            <h3 className="text-base md:text-lg font-black uppercase tracking-tight">Line Items</h3>
             <button 
               onClick={() => setIsEditing(!isEditing)}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-sm font-bold transition-all no-print ${
+              className={`flex items-center gap-2 px-3 md:px-4 py-1.5 rounded-xl text-[10px] md:text-sm font-black uppercase tracking-widest transition-all no-print ${
                 isEditing ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              {isEditing ? <><Check size={16} /> Finish Editing</> : <><Edit3 size={16} /> Manage Items</>}
+              {isEditing ? <><Check size={14} /> Done</> : <><Edit3 size={14} /> Edit</>}
             </button>
           </div>
 
-          <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin">
+          <div className="space-y-6 max-h-[500px] md:max-h-[600px] overflow-y-auto pr-1 no-scrollbar md:pr-2 md:scrollbar-thin">
             {plan.categories.map((cat, catIdx) => (
               <div key={catIdx} className="group border-b last:border-0 pb-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">{cat.name}</h4>
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{cat.name}</h4>
                   {isEditing && (
-                    <button 
-                      onClick={() => removeCategory(catIdx)}
-                      className="p-1 text-slate-300 hover:text-rose-500 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <button onClick={() => removeCategory(catIdx)} className="p-1 text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={12} /></button>
                   )}
                 </div>
                 
                 <div className="space-y-2">
                   {cat.items.map((item, itemIdx) => (
-                    <div key={item.id} className="flex flex-col gap-2 p-2 rounded-xl hover:bg-slate-50/50 transition-colors">
+                    <div key={item.id} className="flex flex-col gap-2 p-1.5 md:p-2 rounded-xl hover:bg-slate-50/50 transition-colors">
                       <div className="flex items-center gap-2">
                         {isEditing ? (
                           <>
-                            <input 
-                              type="text" 
-                              value={item.label}
-                              onChange={(e) => updateItem(catIdx, itemIdx, 'label', e.target.value)}
-                              className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            />
-                            <div className="relative w-32">
-                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">{CURRENCY}</span>
-                              <input 
-                                type="number" 
-                                value={item.cost}
-                                onChange={(e) => updateItem(catIdx, itemIdx, 'cost', e.target.value)}
-                                className="w-full pl-6 pr-2 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
-                              />
+                            <input type="text" value={item.label} onChange={(e) => updateItem(catIdx, itemIdx, 'label', e.target.value)} className="flex-1 min-w-0 px-2 md:px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 font-bold" />
+                            <div className="relative w-24 md:w-32 flex-shrink-0">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">{CURRENCY}</span>
+                              <input type="number" value={item.cost} onChange={(e) => updateItem(catIdx, itemIdx, 'cost', e.target.value)} className="w-full pl-5 md:pl-6 pr-1 md:pr-2 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 font-black" />
                             </div>
-                            <button 
-                              onClick={() => removeItem(catIdx, itemIdx)}
-                              className="p-2 text-slate-300 hover:text-rose-500"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            <button onClick={() => removeItem(catIdx, itemIdx)} className="p-1.5 text-slate-300 hover:text-rose-500 flex-shrink-0"><Trash2 size={14} /></button>
                           </>
                         ) : (
-                          <div className="flex justify-between w-full py-1 text-sm">
-                            <span className="text-slate-700 flex items-center gap-2">
-                               {item.label}
+                          <div className="flex justify-between w-full py-0.5 text-xs md:text-sm">
+                            <span className="text-slate-700 font-medium flex items-center gap-1.5 min-w-0">
+                               <span className="truncate">{item.label}</span>
                                {sideSplit && (
-                                 <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
+                                 <span className={`flex-shrink-0 text-[8px] px-1 py-0.5 rounded font-black tracking-tighter ${
                                    item.side === BudgetSide.BRIDE ? 'bg-rose-100 text-rose-600' :
                                    item.side === BudgetSide.GROOM ? 'bg-indigo-100 text-indigo-600' :
                                    'bg-slate-100 text-slate-400'
@@ -273,68 +224,39 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
                                  </span>
                                )}
                             </span>
-                            <span className="font-semibold text-slate-900">{CURRENCY}{item.cost.toLocaleString('en-IN')}</span>
+                            <span className="font-black text-slate-900 flex-shrink-0 ml-2">{CURRENCY}{item.cost.toLocaleString('en-IN')}</span>
                           </div>
                         )}
                       </div>
                       
-                      {/* Side Split Selector */}
                       {sideSplit && isEditing && (
-                        <div className="flex gap-1">
-                          <SideBtn 
-                            active={item.side === BudgetSide.BRIDE} 
-                            onClick={() => updateItem(catIdx, itemIdx, 'side', BudgetSide.BRIDE)}
-                            icon={<Heart size={10} />}
-                            color="rose"
-                            label="Bride"
-                          />
-                          <SideBtn 
-                            active={item.side === BudgetSide.GROOM} 
-                            onClick={() => updateItem(catIdx, itemIdx, 'side', BudgetSide.GROOM)}
-                            icon={<User size={10} />}
-                            color="indigo"
-                            label="Groom"
-                          />
-                          <SideBtn 
-                            active={item.side === BudgetSide.SHARED || !item.side} 
-                            onClick={() => updateItem(catIdx, itemIdx, 'side', BudgetSide.SHARED)}
-                            icon={<Users size={10} />}
-                            color="slate"
-                            label="Shared"
-                          />
+                        <div className="flex gap-1 overflow-x-auto no-scrollbar">
+                          <SideBtn active={item.side === BudgetSide.BRIDE} onClick={() => updateItem(catIdx, itemIdx, 'side', BudgetSide.BRIDE)} icon={<Heart size={8} />} color="rose" label="Bride" />
+                          <SideBtn active={item.side === BudgetSide.GROOM} onClick={() => updateItem(catIdx, itemIdx, 'side', BudgetSide.GROOM)} icon={<User size={8} />} color="indigo" label="Groom" />
+                          <SideBtn active={item.side === BudgetSide.SHARED || !item.side} onClick={() => updateItem(catIdx, itemIdx, 'side', BudgetSide.SHARED)} icon={<Users size={8} />} color="slate" label="Shared" />
                         </div>
                       )}
                     </div>
                   ))}
                   
                   {isEditing && (
-                    <button 
-                      onClick={() => addItem(catIdx)}
-                      className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 mt-2 px-2 py-1 rounded hover:bg-indigo-50 transition-all"
-                    >
-                      <Plus size={14} /> Add item to {cat.name}
-                    </button>
+                    <button onClick={() => addItem(catIdx)} className="flex items-center gap-1 text-[10px] font-black text-indigo-600 hover:text-indigo-700 mt-2 px-2 py-1 uppercase tracking-widest"><Plus size={12} /> Add Item</button>
                   )}
                 </div>
               </div>
             ))}
 
             {isEditing && (
-              <button 
-                onClick={addCategory}
-                className="w-full py-3 border-2 border-dashed border-slate-100 rounded-2xl text-sm font-bold text-slate-400 hover:border-indigo-200 hover:text-indigo-500 transition-all flex items-center justify-center gap-2"
-              >
-                <Plus size={18} /> Add New Budget Section
-              </button>
+              <button onClick={addCategory} className="w-full py-4 border-2 border-dashed border-slate-100 rounded-2xl text-[10px] font-black text-slate-400 uppercase tracking-widest hover:border-indigo-200 hover:text-indigo-500 transition-all flex items-center justify-center gap-2"><Plus size={16} /> New Section</button>
             )}
 
             <div className="pt-4 border-t space-y-2">
-              <div className="flex justify-between items-center text-sm font-medium text-slate-500">
-                <span>Contingency ({plan.contingencyPercent}%)</span>
+              <div className="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <span>Buffer ({plan.contingencyPercent}%)</span>
                 <span>{CURRENCY}{Math.round(total - (total / (1 + plan.contingencyPercent/100))).toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 font-black text-xl text-indigo-600">
-                <span>Grand Total</span>
+              <div className="flex justify-between items-center pt-2 font-black text-xl md:text-2xl text-indigo-600">
+                <span>Total</span>
                 <span>{CURRENCY}{Math.round(total).toLocaleString('en-IN')}</span>
               </div>
             </div>
@@ -352,14 +274,8 @@ const SideBtn = ({ active, onClick, icon, color, label }: any) => {
     slate: 'bg-slate-600 text-white'
   };
   const inactiveClasses = 'bg-slate-50 text-slate-400 hover:bg-slate-100';
-  
   return (
-    <button 
-      onClick={onClick}
-      className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[9px] font-bold uppercase transition-all ${
-        active ? activeClasses[color as keyof typeof activeClasses] : inactiveClasses
-      }`}
-    >
+    <button onClick={onClick} className={`flex items-center gap-1 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tight transition-all flex-shrink-0 ${active ? activeClasses[color as keyof typeof activeClasses] : inactiveClasses}`}>
       {icon} {label}
     </button>
   );

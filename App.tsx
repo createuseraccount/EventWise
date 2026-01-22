@@ -34,7 +34,8 @@ import {
   MapPin,
   Utensils,
   Camera,
-  Store
+  Store,
+  Download
 } from 'lucide-react';
 import { CURRENCY, GET_DEFAULT_VENDOR_CHECKLIST, VENDOR_CATEGORIES } from './constants';
 
@@ -55,6 +56,8 @@ const App: React.FC = () => {
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
   const [isCreatingWedding, setIsCreatingWedding] = useState(false);
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | EventType>('ALL');
@@ -72,20 +75,39 @@ const App: React.FC = () => {
       }
     };
 
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      // Show install banner if on mobile
+      if (window.innerWidth < 768) {
+        setShowInstallBanner(true);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, [activeTab, currentPlan]);
 
-  // Centralized navigation handler to reset all transient states
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+      setShowInstallBanner(false);
+    }
+  };
+
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setCurrentPlan(null);
     setIsCreatingWedding(false);
     setIsCreatingEvent(false);
-    if (tab === 'create') {
-        // Default to showing choices if clicking "New Planning"
-        // Actually the logic below handles the "LandingPage" rendering for home/create
-    }
   };
 
   const handleUpdatePlan = (updatedPlan: Plan) => {
@@ -139,37 +161,34 @@ const App: React.FC = () => {
     };
   };
 
-  // Content rendering based on state
   let content;
   
-  // High-priority creation wizards
   if (isCreatingWedding) {
     content = <WeddingWizard onComplete={handlePlanComplete} onCancel={() => setIsCreatingWedding(false)} />;
   } else if (isCreatingEvent) {
     content = <GeneralEventPlanner onComplete={handlePlanComplete} onCancel={() => setIsCreatingEvent(false)} />;
   } else if (currentPlan) {
-    // Current active plan view
     const showSplitTab = currentPlan.type === EventType.WEDDING && (currentPlan as WeddingPlan).sideSplitEnabled;
     content = (
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 md:pb-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
             <button 
               onClick={() => setCurrentPlan(null)} 
-              className="p-2 hover:bg-white rounded-xl border border-transparent hover:border-slate-200 transition-all"
+              className="p-2 hover:bg-white rounded-xl border border-transparent hover:border-slate-200 transition-all flex-shrink-0"
             >
               <ArrowLeft size={20} />
             </button>
-            <div>
-              <h1 className="text-2xl font-black text-slate-900">{currentPlan.name}</h1>
-              <p className="text-sm text-slate-500 uppercase font-bold tracking-widest flex items-center gap-2">
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-2xl font-black text-slate-900 truncate">{currentPlan.name}</h1>
+              <p className="text-[10px] md:text-sm text-slate-500 uppercase font-bold tracking-widest flex items-center gap-2">
                 {EVENT_TYPE_ICONS[currentPlan.type]}
                 {currentPlan.type} • {currentPlan.quality}
               </p>
             </div>
           </div>
           
-          <div className="flex bg-white p-1 rounded-2xl border shadow-sm self-start md:self-auto overflow-x-auto no-scrollbar">
+          <div className="flex bg-white p-1 rounded-2xl border shadow-sm self-stretch md:self-auto overflow-x-auto no-scrollbar scroll-smooth">
             <ViewTab active={viewMode === 'BUDGET'} onClick={() => setViewMode('BUDGET')} icon={<LayoutGrid size={16} />} label="Budget" />
             <ViewTab active={viewMode === 'VENDORS'} onClick={() => setViewMode('VENDORS')} icon={<Store size={16} />} label="Vendors" />
             {showSplitTab && <ViewTab active={viewMode === 'SPLIT'} onClick={() => setViewMode('SPLIT')} icon={<GitMerge size={16} />} label="Split" />}
@@ -179,7 +198,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-6 md:gap-8">
           {viewMode === 'BUDGET' && <div className="animate-in fade-in slide-in-from-left-4 duration-300"><Summary plan={currentPlan} onUpdate={handleUpdatePlan} /></div>}
           {viewMode === 'VENDORS' && <div className="animate-in fade-in zoom-in-95 duration-300"><VendorManager plan={currentPlan} onUpdate={handleUpdatePlan} /></div>}
           {viewMode === 'SPLIT' && showSplitTab && <div className="max-w-5xl mx-auto w-full animate-in fade-in zoom-in-95 duration-300"><BudgetSplit plan={currentPlan as WeddingPlan} onUpdate={handleUpdatePlan} /></div>}
@@ -188,7 +207,7 @@ const App: React.FC = () => {
           {viewMode === 'TIMELINE' && <div className="max-w-4xl mx-auto w-full animate-in fade-in slide-in-from-right-4 duration-300"><Timeline plan={currentPlan} onUpdate={handleUpdatePlan} /></div>}
         </div>
         
-        <div className="max-w-4xl mx-auto w-full bg-white p-6 rounded-2xl border shadow-sm no-print">
+        <div className="max-w-4xl mx-auto w-full bg-white p-5 md:p-6 rounded-3xl border shadow-sm no-print">
           <h3 className="text-lg font-bold mb-4">Plan Parameters</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
@@ -202,15 +221,14 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="flex flex-col justify-end gap-3 pt-4 border-t md:border-t-0 md:pt-0">
-              <div className="flex items-center justify-between text-xs text-slate-400 font-medium"><span>Location: {currentPlan.city}</span><span>Created: {new Date(currentPlan.createdAt).toLocaleDateString()}</span></div>
-              <button onClick={(e) => { handleDeletePlan(currentPlan.id, e); setCurrentPlan(null); }} className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors"><Trash2 size={16} /> Delete This Plan</button>
+              <div className="flex items-center justify-between text-[10px] md:text-xs text-slate-400 font-medium"><span>Location: {currentPlan.city}</span><span>Created: {new Date(currentPlan.createdAt).toLocaleDateString()}</span></div>
+              <button onClick={(e) => { handleDeletePlan(currentPlan.id, e); setCurrentPlan(null); }} className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-2xl transition-colors"><Trash2 size={16} /> Delete This Plan</button>
             </div>
           </div>
         </div>
       </div>
     );
   } else {
-    // Tab-based static/informational content
     switch(activeTab) {
       case 'home':
       case 'create':
@@ -218,109 +236,115 @@ const App: React.FC = () => {
         break;
       case 'list':
         content = (
-          <div className="space-y-6 animate-in fade-in duration-500">
+          <div className="space-y-6 animate-in fade-in duration-500 pb-20 md:pb-0">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-              <div><h1 className="text-3xl font-black text-slate-900">Your Plans</h1><p className="text-slate-500">All your event calculations in one place</p></div>
+              <div><h1 className="text-2xl md:text-3xl font-black text-slate-900">Your Plans</h1><p className="text-slate-500 text-sm md:text-base">All your event calculations in one place</p></div>
               <div className="flex gap-2">
-                <button onClick={() => setIsCreatingWedding(true)} className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-rose-100 whitespace-nowrap hover:bg-rose-600 transition-colors"><Plus size={16} /> Wedding</button>
-                <button onClick={() => setIsCreatingEvent(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 whitespace-nowrap hover:bg-indigo-700 transition-colors"><Plus size={16} /> Event</button>
+                <button onClick={() => setIsCreatingWedding(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-rose-100 whitespace-nowrap hover:bg-rose-600 transition-colors"><Plus size={16} /> Wedding</button>
+                <button onClick={() => setIsCreatingEvent(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 whitespace-nowrap hover:bg-indigo-700 transition-colors"><Plus size={16} /> Event</button>
               </div>
             </div>
 
             <div className="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5">
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Search className="h-5 w-5 text-slate-400" /></div>
-                <input ref={searchInputRef} type="text" className="block w-full pl-12 pr-20 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 text-sm transition-all" placeholder="Search plans..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Search className="h-4 w-4 text-slate-400" /></div>
+                <input ref={searchInputRef} type="text" className="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 text-sm transition-all" placeholder="Search plans..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               </div>
 
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar flex-1">
-                  <Filter size={14} className="text-slate-400" /><FilterChip label="All" active={filterType === 'ALL'} onClick={() => setFilterType('ALL')} />
-                  {(Object.keys(EventType) as Array<keyof typeof EventType>).map(type => <FilterChip key={type} label={type.charAt(0) + type.slice(1).toLowerCase()} active={filterType === EventType[type]} onClick={() => setFilterType(EventType[type])} />)}
-                </div>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
+                <Filter size={14} className="text-slate-400 flex-shrink-0" /><FilterChip label="All" active={filterType === 'ALL'} onClick={() => setFilterType('ALL')} />
+                {(Object.keys(EventType) as Array<keyof typeof EventType>).map(type => <FilterChip key={type} label={type.charAt(0) + type.slice(1).toLowerCase()} active={filterType === EventType[type]} onClick={() => setFilterType(EventType[type])} />)}
               </div>
             </div>
 
             {filteredPlans.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {filteredPlans.map(plan => {
                   const total = plan.categories.reduce((acc, cat) => acc + cat.items.reduce((iAcc, item) => iAcc + item.cost, 0), 0) * (1 + plan.contingencyPercent/100);
                   const bookings = getBookingStatus(plan);
                   return (
-                    <div key={plan.id} onClick={() => setCurrentPlan(plan)} className="group bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col">
-                      <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-10 ${plan.type === EventType.WEDDING ? 'bg-rose-500' : 'bg-indigo-500'}`} />
+                    <div key={plan.id} onClick={() => setCurrentPlan(plan)} className="group bg-white p-5 md:p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col">
+                      <div className={`absolute top-0 right-0 w-20 h-20 -mr-8 -mt-8 rounded-full opacity-10 ${plan.type === EventType.WEDDING ? 'bg-rose-500' : 'bg-indigo-500'}`} />
                       <div className="flex items-start justify-between mb-4">
-                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${plan.type === EventType.WEDDING ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-600'}`}>{EVENT_TYPE_ICONS[plan.type]}{plan.type}</div>
+                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${plan.type === EventType.WEDDING ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-600'}`}>{EVENT_TYPE_ICONS[plan.type]}{plan.type}</div>
                         <button onClick={(e) => handleDeletePlan(plan.id, e)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors z-10"><Trash2 size={16} /></button>
                       </div>
                       <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">{plan.name}</h3>
                       <div className="flex items-center gap-3 text-xs text-slate-400 font-medium mb-4"><span>{plan.guestCount} Guests</span><span>•</span><span className="flex items-center gap-1"><Clock size={12} /> {plan.timeline?.length || 0} slots</span></div>
                       
-                      <div className="flex items-center gap-2 mb-6 no-print">
-                        <BookingIcon icon={<MapPin size={12} />} label="Venue" booked={bookings.venue} />
-                        <BookingIcon icon={<Utensils size={12} />} label="Catering" booked={bookings.caterer} />
-                        <BookingIcon icon={<Camera size={12} />} label="Photo" booked={bookings.photographer} />
+                      <div className="flex flex-wrap items-center gap-1.5 mb-6 no-print">
+                        <BookingIcon icon={<MapPin size={10} />} label="Venue" booked={bookings.venue} />
+                        <BookingIcon icon={<Utensils size={10} />} label="Catering" booked={bookings.caterer} />
+                        <BookingIcon icon={<Camera size={10} />} label="Photo" booked={bookings.photographer} />
                       </div>
 
                       <div className="mt-auto flex items-end justify-between">
-                        <div><p className="text-[10px] font-bold text-slate-400 uppercase">Estimated Budget</p><p className="text-xl font-black text-slate-900">{CURRENCY}{Math.round(total).toLocaleString('en-IN')}</p></div>
-                        <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300"><ExternalLink size={20} /></div>
+                        <div><p className="text-[10px] font-bold text-slate-400 uppercase">Est. Budget</p><p className="text-lg font-black text-slate-900">{CURRENCY}{Math.round(total).toLocaleString('en-IN')}</p></div>
+                        <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300"><ExternalLink size={18} /></div>
                       </div>
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <div className="bg-white rounded-[40px] p-12 md:p-20 border border-dashed border-slate-200 text-center space-y-6">
-                <div className="w-24 h-24 bg-slate-50 text-slate-300 rounded-[32px] flex items-center justify-center mx-auto"><Search size={48} className="opacity-50" /></div>
-                <div className="max-w-xs mx-auto text-center"><h3 className="text-xl font-bold text-slate-900 mb-2">No matching plans</h3><p className="text-slate-500 text-sm">Clear your search or filter to see all your events.</p></div>
+              <div className="bg-white rounded-[32px] md:rounded-[40px] p-10 md:p-20 border border-dashed border-slate-200 text-center space-y-6">
+                <div className="w-20 h-20 bg-slate-50 text-slate-300 rounded-[28px] flex items-center justify-center mx-auto"><Search size={32} className="opacity-50" /></div>
+                <div className="max-w-xs mx-auto text-center"><h3 className="text-lg font-bold text-slate-900 mb-2">No matching plans</h3><p className="text-slate-500 text-sm">Clear your search or filter to see all your events.</p></div>
               </div>
             )}
           </div>
         );
         break;
-      case 'how-to':
-        content = <HowToUse />;
-        break;
-      case 'sponsor':
-        content = <SponsorUs />;
-        break;
-      case 'about':
-        content = <About />;
-        break;
-      case 'contact':
-        content = <Contact />;
-        break;
-      case 'privacy':
-        content = <PrivacyPolicy />;
-        break;
-      case 'terms':
-        content = <Terms />;
-        break;
-      default:
-        content = <LandingPage onCreateWedding={() => setIsCreatingWedding(true)} onCreateEvent={() => setIsCreatingEvent(true)} />;
+      case 'how-to': content = <HowToUse />; break;
+      case 'sponsor': content = <SponsorUs />; break;
+      case 'about': content = <About />; break;
+      case 'contact': content = <Contact />; break;
+      case 'privacy': content = <PrivacyPolicy />; break;
+      case 'terms': content = <Terms />; break;
+      default: content = <LandingPage onCreateWedding={() => setIsCreatingWedding(true)} onCreateEvent={() => setIsCreatingEvent(true)} />;
     }
   }
 
   return (
     <Layout activeTab={activeTab} setActiveTab={handleTabChange}>
       {content}
+      
+      {/* Mobile Install Prompt */}
+      {showInstallBanner && (
+        <div className="fixed bottom-20 left-4 right-4 z-[60] animate-in slide-in-from-bottom-8 md:hidden">
+          <div className="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Download size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-bold">Install EventWise</p>
+                <p className="text-[10px] text-slate-400">Add to home screen for offline use</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setShowInstallBanner(false)} className="px-3 py-2 text-[10px] font-bold text-slate-400">Later</button>
+              <button onClick={handleInstallClick} className="px-4 py-2 bg-indigo-600 rounded-xl text-[10px] font-bold shadow-lg shadow-indigo-900/40">Install</button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
 
 const BookingIcon: React.FC<{ icon: React.ReactNode, label: string, booked: boolean }> = ({ icon, label, booked }) => (
-  <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[9px] font-bold uppercase tracking-tight transition-all ${booked ? 'bg-emerald-50 border-emerald-100 text-emerald-600 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>
-    {icon}<span>{label}</span>
+  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[8px] font-bold uppercase tracking-tight transition-all ${booked ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>
+    {icon}<span className="hidden xs:inline">{label}</span>
   </div>
 );
 
 const FilterChip: React.FC<{ label: string, active: boolean, onClick: () => void }> = ({ label, active, onClick }) => (
-  <button onClick={onClick} className={`px-5 py-2 rounded-2xl text-[11px] font-bold transition-all flex-shrink-0 border ${active ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600'}`}>{label}</button>
+  <button onClick={onClick} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all flex-shrink-0 border ${active ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-600'}`}>{label}</button>
 );
 
 const ViewTab: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string }> = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}>{icon}<span>{label}</span></button>
+  <button onClick={onClick} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500'}`}>{icon}<span>{label}</span></button>
 );
 
 export default App;
