@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Plan, BudgetCategory, BudgetSide, WeddingPlan } from '../../types';
+import { Plan, BudgetCategory, BudgetSide, WeddingPlan, Snapshot } from '../../types';
 import { CURRENCY } from '../../constants';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Download, Printer, Plus, Trash2, Edit3, Check, FileSpreadsheet, FileText, Heart, User, Users } from 'lucide-react';
+import { Download, Printer, Plus, Trash2, Edit3, Check, FileSpreadsheet, FileText, Heart, User, Users, History, Undo2, X } from 'lucide-react';
 
 interface SummaryProps {
   plan: Plan;
@@ -20,6 +20,7 @@ const SUGGESTIONS = [
 
 const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   const calculateTotal = () => {
     let base = 0;
@@ -101,23 +102,30 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
     onUpdate({ ...plan, categories: newCategories });
   };
 
+  const restoreSnapshot = (snapshot: Snapshot) => {
+    if (confirm(`Revert to "${snapshot.label}"? Unsaved changes will be lost.`)) {
+      onUpdate({ ...snapshot.data, snapshots: plan.snapshots });
+      setShowHistory(false);
+    }
+  };
+
   const isWedding = plan.type === 'WEDDING';
   const sideSplit = isWedding && (plan as WeddingPlan).sideSplitEnabled;
 
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 px-1 md:px-0">
         <div className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center">
-          <p className="text-[10px] md:text-sm text-slate-500 font-bold uppercase tracking-widest mb-1">Total Estimated</p>
+          <p className="text-[10px] md:text-sm text-slate-500 font-black uppercase tracking-widest mb-1">Total Estimated</p>
           <h2 className="text-2xl md:text-3xl font-black text-indigo-600">{CURRENCY}{Math.round(total).toLocaleString('en-IN')}</h2>
         </div>
         <div className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center">
-          <p className="text-[10px] md:text-sm text-slate-500 font-bold uppercase tracking-widest mb-1">Per Guest</p>
+          <p className="text-[10px] md:text-sm text-slate-500 font-black uppercase tracking-widest mb-1">Per Guest</p>
           <h2 className="text-xl md:text-2xl font-black text-slate-900">{CURRENCY}{Math.round(perGuest).toLocaleString('en-IN')}</h2>
         </div>
         <div className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center">
-          <p className="text-[10px] md:text-sm text-slate-500 font-bold uppercase tracking-widest mb-1">Guest Count</p>
+          <p className="text-[10px] md:text-sm text-slate-500 font-black uppercase tracking-widest mb-1">Guest Count</p>
           <h2 className="text-xl md:text-2xl font-black text-slate-900">{plan.guestCount} People</h2>
         </div>
       </div>
@@ -127,49 +135,88 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
           <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm h-fit">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base md:text-lg font-black uppercase tracking-tight">Allocation</h3>
-              <div className="no-print">
+              <div className="no-print flex gap-2">
+                <button 
+                  onClick={() => setShowHistory(!showHistory)} 
+                  className={`p-2 rounded-lg transition-colors ${showHistory ? 'bg-indigo-600 text-white' : 'hover:bg-slate-100 text-slate-600'}`}
+                  title="View History"
+                >
+                  <History size={18} />
+                </button>
                 <button onClick={handlePrintPDF} className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"><Printer size={18} /></button>
               </div>
             </div>
-            <div className="h-48 md:h-64 mb-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={window.innerWidth < 768 ? 40 : 60}
-                    outerRadius={window.innerWidth < 768 ? 60 : 80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => `${CURRENCY}${value.toLocaleString('en-IN')}`} />
-                  <Legend verticalAlign="bottom" height={36} iconSize={10} wrapperStyle={{ fontSize: '10px' }}/>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
 
-            <div className="space-y-3 pt-4 border-t border-slate-100 no-print">
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add missing pieces</p>
-               <div className="flex flex-wrap gap-1.5">
-                  {SUGGESTIONS.map(s => (
-                    <button key={s} onClick={() => addItem(0, s)} className="px-2.5 py-1 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border border-slate-200 rounded-full text-[10px] font-bold transition-all">
-                      + {s}
-                    </button>
-                  ))}
-               </div>
-            </div>
+            {showHistory ? (
+              <div className="min-h-[250px] animate-in slide-in-from-right-4 duration-300">
+                <div className="flex items-center justify-between mb-4">
+                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Version History</p>
+                   <button onClick={() => setShowHistory(false)} className="text-slate-400 hover:text-slate-600"><X size={16}/></button>
+                </div>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
+                  {plan.snapshots && plan.snapshots.length > 0 ? (
+                    plan.snapshots.map(sn => (
+                      <div key={sn.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between group">
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-black text-slate-900 truncate">{sn.label}</p>
+                          <p className="text-[9px] font-bold text-slate-400">{new Date(sn.timestamp).toLocaleDateString()} • {CURRENCY}{Math.round(sn.totalBudget).toLocaleString('en-IN')}</p>
+                        </div>
+                        <button onClick={() => restoreSnapshot(sn)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 hover:shadow-sm active:scale-95 transition-all">
+                          <Undo2 size={10} /> Revert
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-20 text-center text-slate-400 italic text-sm">
+                      No snapshots found.<br/>
+                      <span className="text-[10px] uppercase font-black not-italic mt-2 block">Create snapshots using the Save button.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="h-48 md:h-64 mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={window.innerWidth < 768 ? 40 : 60}
+                      outerRadius={window.innerWidth < 768 ? 60 : 80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => `${CURRENCY}${value.toLocaleString('en-IN')}`} />
+                    <Legend verticalAlign="bottom" height={36} iconSize={10} wrapperStyle={{ fontSize: '10px' }}/>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {!showHistory && (
+              <div className="space-y-3 pt-4 border-t border-slate-100 no-print">
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add missing pieces</p>
+                 <div className="flex flex-wrap gap-1.5">
+                    {SUGGESTIONS.map(s => (
+                      <button key={s} onClick={() => addItem(0, s)} className="px-2.5 py-1 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border border-slate-200 rounded-full text-[10px] font-bold transition-all">
+                        + {s}
+                      </button>
+                    ))}
+                 </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm no-print">
-            <h3 className="text-base md:text-lg font-black mb-4">Share Plan</h3>
+            <h3 className="text-base md:text-lg font-black uppercase tracking-tight mb-4">Share Plan</h3>
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={handleExportCSV} className="flex items-center justify-center gap-2 p-3 bg-emerald-50 text-emerald-700 rounded-xl font-black text-xs hover:bg-emerald-100 transition-all border border-emerald-100"><FileSpreadsheet size={16} /> CSV</button>
-              <button onClick={handlePrintPDF} className="flex items-center justify-center gap-2 p-3 bg-rose-50 text-rose-700 rounded-xl font-black text-xs hover:bg-rose-100 transition-all border border-rose-100"><FileText size={16} /> PDF</button>
+              <button onClick={handleExportCSV} className="flex items-center justify-center gap-2 p-3 bg-emerald-50 text-emerald-700 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-100"><FileSpreadsheet size={16} /> CSV</button>
+              <button onClick={handlePrintPDF} className="flex items-center justify-center gap-2 p-3 bg-rose-50 text-rose-700 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100"><FileText size={16} /> PDF</button>
             </div>
           </div>
         </div>
@@ -230,7 +277,7 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
                       </div>
                       
                       {sideSplit && isEditing && (
-                        <div className="flex gap-1 overflow-x-auto no-scrollbar">
+                        <div className="flex gap-1 overflow-x-auto no-scrollbar pb-1">
                           <SideBtn active={item.side === BudgetSide.BRIDE} onClick={() => updateItem(catIdx, itemIdx, 'side', BudgetSide.BRIDE)} icon={<Heart size={8} />} color="rose" label="Bride" />
                           <SideBtn active={item.side === BudgetSide.GROOM} onClick={() => updateItem(catIdx, itemIdx, 'side', BudgetSide.GROOM)} icon={<User size={8} />} color="indigo" label="Groom" />
                           <SideBtn active={item.side === BudgetSide.SHARED || !item.side} onClick={() => updateItem(catIdx, itemIdx, 'side', BudgetSide.SHARED)} icon={<Users size={8} />} color="slate" label="Shared" />

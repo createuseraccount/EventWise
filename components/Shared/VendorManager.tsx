@@ -4,7 +4,7 @@ import { Plan, Vendor, VendorChecklistItem, VendorPhase } from '../../types';
 import { VENDOR_CATEGORIES, CURRENCY, GET_DEFAULT_VENDOR_CHECKLIST } from '../../constants';
 import { 
   Building2, UtensilsCrossed, Palette, Camera, Sparkles, Music, 
-  Truck, Mail, Bed, Sun, MoreHorizontal, CheckCircle2, Circle, 
+  Truck, Mail, Bed, MoreHorizontal, CheckCircle2, Circle, 
   AlertTriangle, CreditCard, ChevronRight, Info, Plus, Trash2
 } from 'lucide-react';
 
@@ -23,7 +23,6 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   'Transport': <Truck size={20} />,
   'Invitations': <Mail size={20} />,
   'Accommodation': <Bed size={20} />,
-  'Ritual': <Sun size={20} />,
   'Miscellaneous': <MoreHorizontal size={20} />,
 };
 
@@ -234,11 +233,36 @@ const VendorManager: React.FC<VendorManagerProps> = ({ plan, onUpdate }) => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">Company Name</label>
-                  <input type="text" value={activeVendor.name} onChange={e => updateVendor({ name: e.target.value })} placeholder="..." className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-xs font-bold" />
+                  <input type="text" value={activeVendor.name} onChange={e => updateVendor({ name: e.target.value })} placeholder="Vendor Name" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-xs font-bold" />
                 </div>
+                
+                {activeCategory === 'Venue' && (
+                  <>
+                    <div>
+                      <label className="block text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">Address</label>
+                      <textarea 
+                        value={activeVendor.address || ''} 
+                        onChange={e => updateVendor({ address: e.target.value })} 
+                        placeholder="Full Address" 
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-xs font-medium resize-none h-20" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">Google Maps Link</label>
+                      <input 
+                        type="text" 
+                        value={activeVendor.mapLink || ''} 
+                        onChange={e => updateVendor({ mapLink: e.target.value })} 
+                        placeholder="https://maps.google.com/..." 
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-xs font-medium text-indigo-600" 
+                      />
+                    </div>
+                  </>
+                )}
+
                 <div>
                   <label className="block text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">Contact Details</label>
-                  <input type="text" value={activeVendor.contact} onChange={e => updateVendor({ contact: e.target.value })} placeholder="..." className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-xs font-medium" />
+                  <input type="text" value={activeVendor.contact} onChange={e => updateVendor({ contact: e.target.value })} placeholder="Phone / Email" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-xs font-medium" />
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <div>

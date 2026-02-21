@@ -1,7 +1,8 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Layout from './components/Layout';
 import LandingPage from './components/LandingPage';
+import Login from './components/Auth/Login';
+import SignUp from './components/Auth/SignUp';
 import WeddingWizard from './components/WeddingPlanner/Wizard';
 import GeneralEventPlanner from './components/EventPlanner/Planner';
 import Summary from './components/Shared/Summary';
@@ -10,34 +11,44 @@ import Timeline from './components/Shared/Timeline';
 import GuestIntelligence from './components/Shared/GuestIntelligence';
 import BudgetSplit from './components/Shared/BudgetSplit';
 import VendorManager from './components/Shared/VendorManager';
+import SeatingMapper from './components/ProModules/SeatingMapper';
+import LogisticsHub from './components/ProModules/LogisticsHub';
+import WardrobeVault from './components/ProModules/WardrobeVault';
+import FinancialPro from './components/ProModules/FinancialPro';
+import DestinationMatrix from './components/ProModules/DestinationMatrix';
+import RunSheet from './components/ProModules/RunSheet';
+import WebsiteManager from './components/PublicWebsite/WebsiteManager';
+import GuestLandingPage from './components/PublicWebsite/GuestLandingPage';
 import { HowToUse, SponsorUs, About, Contact, PrivacyPolicy, Terms } from './components/InfoPages';
-import { Plan, EventType, WeddingPlan } from './types';
+import { Plan, EventType, WeddingPlan, Snapshot, RSVP } from './types';
 import { storage } from './utils/storage';
+import { authService } from './src/services/authService';
 import { 
-  Trash2, 
   Plus, 
   ArrowLeft, 
   ExternalLink, 
   Search, 
-  Filter, 
-  X, 
   Heart, 
   Cake, 
   Briefcase, 
   Star, 
   Music,
   LayoutGrid,
-  ClipboardList,
-  Clock,
+  Hotel,
+  Plane,
+  Zap,
+  Download,
+  X,
+  Smartphone,
   Users,
-  GitMerge,
-  MapPin,
-  Utensils,
-  Camera,
   Store,
-  Download
+  Save,
+  Check,
+  Clock,
+  Globe,
+  Loader2
 } from 'lucide-react';
-import { CURRENCY, GET_DEFAULT_VENDOR_CHECKLIST, VENDOR_CATEGORIES } from './constants';
+import { CURRENCY } from './constants';
 
 const EVENT_TYPE_ICONS: Record<EventType, React.ReactNode> = {
   [EventType.WEDDING]: <Heart size={12} />,
@@ -47,9 +58,14 @@ const EVENT_TYPE_ICONS: Record<EventType, React.ReactNode> = {
   [EventType.PARTY]: <Music size={12} />,
 };
 
-type ViewMode = 'BUDGET' | 'GUESTS' | 'CHECKLIST' | 'TIMELINE' | 'SPLIT' | 'VENDORS';
+type ViewMode = 'BUDGET' | 'GUESTS' | 'CHECKLIST' | 'TIMELINE' | 'SPLIT' | 'VENDORS' | 'SEATING' | 'LOGISTICS' | 'WARDROBE' | 'FINANCE' | 'DESTINATION' | 'RUNSHEET' | 'WEBSITE';
+type AuthView = 'LANDING' | 'LOGIN' | 'SIGNUP';
 
 const App: React.FC = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authView, setAuthView] = useState<AuthView>('LANDING');
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
   const [activeTab, setActiveTab] = useState('home');
   const [viewMode, setViewMode] = useState<ViewMode>('BUDGET');
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -58,56 +74,82 @@ const App: React.FC = () => {
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isGuestView, setIsGuestView] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | EventType>('ALL');
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setPlans(storage.getPlans());
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === '/' || (e.metaKey && e.key === 'k')) && activeTab === 'list' && !currentPlan) {
-        if (document.activeElement !== searchInputRef.current) {
-          e.preventDefault();
-          searchInputRef.current?.focus();
-        }
+    // Initialize Auth
+    const initAuth = async () => {
+      setIsAuthLoading(true);
+      const { session } = await authService.getSession();
+      
+      if (session) {
+        setIsLoggedIn(true);
+        setPlans(storage.getPlans());
+      } else {
+        setIsLoggedIn(false);
       }
+      setIsAuthLoading(false);
     };
+
+    initAuth();
+
+    // Listen for Auth Changes
+    const subscription = authService.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setIsLoggedIn(true);
+        setPlans(storage.getPlans());
+        setAuthView('LANDING');
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setCurrentPlan(null);
+        setAuthView('LANDING');
+      }
+    });
 
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Show install banner if on mobile
-      if (window.innerWidth < 768) {
+      const hasDismissed = sessionStorage.getItem('installBannerDismissed');
+      if (!hasDismissed) {
         setShowInstallBanner(true);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      subscription.unsubscribe();
     };
-  }, [activeTab, currentPlan]);
+  }, []);
+
+  const handleLogin = () => {
+    // Supabase auth state change listener will handle the state update
+    setPlans(storage.getPlans());
+    setActiveTab('home');
+  };
+
+  const handleLogout = async () => {
+    await authService.signOut();
+    // State will be updated by onAuthStateChange listener
+  };
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
-      setDeferredPrompt(null);
       setShowInstallBanner(false);
     }
+    setDeferredPrompt(null);
   };
 
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    setCurrentPlan(null);
-    setIsCreatingWedding(false);
-    setIsCreatingEvent(false);
+  const handleDismissBanner = () => {
+    setShowInstallBanner(false);
+    sessionStorage.setItem('installBannerDismissed', 'true');
   };
 
   const handleUpdatePlan = (updatedPlan: Plan) => {
@@ -116,13 +158,32 @@ const App: React.FC = () => {
     setCurrentPlan(updatedPlan);
   };
 
-  const handleDeletePlan = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (confirm('Are you sure you want to delete this plan?')) {
-      storage.deletePlan(id);
-      setPlans(storage.getPlans());
-      if (currentPlan?.id === id) setCurrentPlan(null);
-    }
+  const handleRsvpSubmit = (rsvp: RSVP) => {
+    if (!currentPlan) return;
+    const updatedRsvps = [...(currentPlan.rsvps || []), rsvp];
+    const updatedPlan = { ...currentPlan, rsvps: updatedRsvps };
+    handleUpdatePlan(updatedPlan);
+  };
+
+  const createQuickSnapshot = () => {
+    if (!currentPlan) return;
+    setIsSaving(true);
+    
+    const base = currentPlan.categories.reduce((acc, cat) => acc + cat.items.reduce((i, item) => i + item.cost, 0), 0);
+    const totalBudget = base * (1 + currentPlan.contingencyPercent / 100);
+    
+    const newSnapshot: Snapshot = {
+      id: Date.now().toString(),
+      timestamp: Date.now(),
+      label: `Quick Save - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      totalBudget: totalBudget,
+      data: JSON.parse(JSON.stringify(currentPlan))
+    };
+    
+    const updatedSnapshots = [newSnapshot, ...(currentPlan.snapshots || [])].slice(0, 10);
+    handleUpdatePlan({ ...currentPlan, snapshots: updatedSnapshots });
+    
+    setTimeout(() => setIsSaving(false), 2000);
   };
 
   const handlePlanComplete = (plan: Plan) => {
@@ -142,25 +203,36 @@ const App: React.FC = () => {
     });
   }, [plans, searchQuery, filterType]);
 
-  const getBookingStatus = (plan: Plan) => {
-    const checkMaster = (keywords: string[]) => 
-      plan.checklist.some(item => 
-        keywords.some(k => item.task.toLowerCase().includes(k)) && item.completed
-      );
+  // Guest View Rendering (Public Website)
+  if (isGuestView && currentPlan) {
+    return <GuestLandingPage plan={currentPlan} onRsvpSubmit={handleRsvpSubmit} onBack={() => setIsGuestView(false)} />;
+  }
 
-    const checkVendors = (category: string) => {
-      if (!plan.vendors) return false;
-      const v = plan.vendors.find(vend => vend.category === category);
-      return v?.checklist.some(i => i.completed && (i.task.toLowerCase().includes('contract') || i.task.toLowerCase().includes('advance') || i.task.toLowerCase().includes('shortlisted')));
-    };
+  // Auth Loading State
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto" />
+          <p className="text-slate-500 font-bold animate-pulse">Initializing Session...</p>
+        </div>
+      </div>
+    );
+  }
 
-    return {
-      venue: checkMaster(['venue', 'place', 'location booked', 'venue confirmed']) || checkVendors('Venue'),
-      caterer: checkMaster(['caterer', 'catering', 'food', 'menu confirmed']) || checkVendors('Caterer'),
-      photographer: checkMaster(['photograph', 'camera', 'video', 'cinematographer']) || checkVendors('Photographer')
-    };
-  };
+  // Auth Flow Rendering
+  if (!isLoggedIn) {
+    switch (authView) {
+      case 'LOGIN':
+        return <Login onLogin={handleLogin} onNavigateToSignUp={() => setAuthView('SIGNUP')} onBack={() => setAuthView('LANDING')} />;
+      case 'SIGNUP':
+        return <SignUp onSignUp={handleLogin} onNavigateToLogin={() => setAuthView('LOGIN')} onBack={() => setAuthView('LANDING')} />;
+      default:
+        return <LandingPage onLogin={() => setAuthView('LOGIN')} onSignUp={() => setAuthView('SIGNUP')} />;
+    }
+  }
 
+  // Logged In Content
   let content;
   
   if (isCreatingWedding) {
@@ -168,130 +240,141 @@ const App: React.FC = () => {
   } else if (isCreatingEvent) {
     content = <GeneralEventPlanner onComplete={handlePlanComplete} onCancel={() => setIsCreatingEvent(false)} />;
   } else if (currentPlan) {
-    const showSplitTab = currentPlan.type === EventType.WEDDING && (currentPlan as WeddingPlan).sideSplitEnabled;
+    const isWedding = currentPlan.type === EventType.WEDDING;
     content = (
-      <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 md:pb-0">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
+      <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 no-print px-1 md:px-0">
           <div className="flex items-center gap-3 md:gap-4">
-            <button 
-              onClick={() => setCurrentPlan(null)} 
-              className="p-2 hover:bg-white rounded-xl border border-transparent hover:border-slate-200 transition-all flex-shrink-0"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div className="min-w-0">
+            <button onClick={() => setCurrentPlan(null)} className="p-2.5 hover:bg-white rounded-xl border border-slate-100 hover:border-slate-200 transition-all flex-shrink-0 bg-white md:bg-transparent shadow-sm md:shadow-none"><ArrowLeft size={20} /></button>
+            <div className="min-w-0 flex-1">
               <h1 className="text-xl md:text-2xl font-black text-slate-900 truncate">{currentPlan.name}</h1>
-              <p className="text-[10px] md:text-sm text-slate-500 uppercase font-bold tracking-widest flex items-center gap-2">
-                {EVENT_TYPE_ICONS[currentPlan.type]}
-                {currentPlan.type} • {currentPlan.quality}
-              </p>
+              <p className="text-[10px] md:text-sm text-slate-500 uppercase font-black tracking-widest flex items-center gap-2">{EVENT_TYPE_ICONS[currentPlan.type]}{currentPlan.type} • {currentPlan.quality}</p>
             </div>
+            <button 
+              onClick={createQuickSnapshot} 
+              className={`p-2.5 rounded-xl transition-all flex items-center gap-2 group ${isSaving ? 'bg-emerald-600 text-white shadow-emerald-100' : 'bg-white border border-slate-100 text-slate-400 hover:border-indigo-600 hover:text-indigo-600 shadow-sm'}`}
+              title="Quick Snapshot"
+            >
+              {isSaving ? <Check size={18} /> : <Save size={18} />}
+              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest">Snapshot</span>
+            </button>
           </div>
           
           <div className="flex bg-white p-1 rounded-2xl border shadow-sm self-stretch md:self-auto overflow-x-auto no-scrollbar scroll-smooth">
             <ViewTab active={viewMode === 'BUDGET'} onClick={() => setViewMode('BUDGET')} icon={<LayoutGrid size={16} />} label="Budget" />
-            <ViewTab active={viewMode === 'VENDORS'} onClick={() => setViewMode('VENDORS')} icon={<Store size={16} />} label="Vendors" />
-            {showSplitTab && <ViewTab active={viewMode === 'SPLIT'} onClick={() => setViewMode('SPLIT')} icon={<GitMerge size={16} />} label="Split" />}
-            <ViewTab active={viewMode === 'GUESTS'} onClick={() => setViewMode('GUESTS')} icon={<Users size={16} />} label="Guests" />
-            <ViewTab active={viewMode === 'CHECKLIST'} onClick={() => setViewMode('CHECKLIST')} icon={<ClipboardList size={16} />} label="Checklist" />
+            <ViewTab active={viewMode === 'CHECKLIST'} onClick={() => setViewMode('CHECKLIST')} icon={<Check size={16} />} label="Checklist" />
             <ViewTab active={viewMode === 'TIMELINE'} onClick={() => setViewMode('TIMELINE')} icon={<Clock size={16} />} label="Timeline" />
+            <ViewTab active={viewMode === 'RUNSHEET'} onClick={() => setViewMode('RUNSHEET')} icon={<Zap size={16} />} label="Run Sheet" />
+            <ViewTab active={viewMode === 'DESTINATION'} onClick={() => setViewMode('DESTINATION')} icon={<Plane size={16} />} label="Destination" />
+            <ViewTab active={viewMode === 'VENDORS'} onClick={() => setViewMode('VENDORS')} icon={<Store size={16} />} label="Vendors" />
+            <ViewTab active={viewMode === 'LOGISTICS'} onClick={() => setViewMode('LOGISTICS')} icon={<Hotel size={16} />} label="Logistics" />
+            <ViewTab active={viewMode === 'GUESTS'} onClick={() => setViewMode('GUESTS')} icon={<Users size={16} />} label="Guests" />
+            <ViewTab active={viewMode === 'WEBSITE'} onClick={() => setViewMode('WEBSITE')} icon={<Globe size={16} />} label="Website" />
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:gap-8">
-          {viewMode === 'BUDGET' && <div className="animate-in fade-in slide-in-from-left-4 duration-300"><Summary plan={currentPlan} onUpdate={handleUpdatePlan} /></div>}
-          {viewMode === 'VENDORS' && <div className="animate-in fade-in zoom-in-95 duration-300"><VendorManager plan={currentPlan} onUpdate={handleUpdatePlan} /></div>}
-          {viewMode === 'SPLIT' && showSplitTab && <div className="max-w-5xl mx-auto w-full animate-in fade-in zoom-in-95 duration-300"><BudgetSplit plan={currentPlan as WeddingPlan} onUpdate={handleUpdatePlan} /></div>}
-          {viewMode === 'GUESTS' && <div className="max-w-5xl mx-auto w-full animate-in fade-in zoom-in-95 duration-300"><GuestIntelligence plan={currentPlan} onUpdate={handleUpdatePlan} /></div>}
-          {viewMode === 'CHECKLIST' && <div className="max-w-4xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-300"><Checklist plan={currentPlan} onUpdate={handleUpdatePlan} /></div>}
-          {viewMode === 'TIMELINE' && <div className="max-w-4xl mx-auto w-full animate-in fade-in slide-in-from-right-4 duration-300"><Timeline plan={currentPlan} onUpdate={handleUpdatePlan} /></div>}
-        </div>
-        
-        <div className="max-w-4xl mx-auto w-full bg-white p-5 md:p-6 rounded-3xl border shadow-sm no-print">
-          <h3 className="text-lg font-bold mb-4">Plan Parameters</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-2"><label className="text-sm font-semibold text-slate-700">Total Guests</label><span className="text-sm font-bold text-indigo-600">{currentPlan.guestCount}</span></div>
-                <input type="range" min="1" max="2000" step="1" value={currentPlan.guestCount} onChange={(e) => handleUpdatePlan({...currentPlan, guestCount: Number(e.target.value)})} className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2"><label className="text-sm font-semibold text-slate-700">Contingency Buffer</label><span className="text-sm font-bold text-indigo-600">{currentPlan.contingencyPercent}%</span></div>
-                <input type="range" min="0" max="25" step="1" value={currentPlan.contingencyPercent} onChange={(e) => handleUpdatePlan({...currentPlan, contingencyPercent: Number(e.target.value)})} className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
-              </div>
-            </div>
-            <div className="flex flex-col justify-end gap-3 pt-4 border-t md:border-t-0 md:pt-0">
-              <div className="flex items-center justify-between text-[10px] md:text-xs text-slate-400 font-medium"><span>Location: {currentPlan.city}</span><span>Created: {new Date(currentPlan.createdAt).toLocaleDateString()}</span></div>
-              <button onClick={(e) => { handleDeletePlan(currentPlan.id, e); setCurrentPlan(null); }} className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-2xl transition-colors"><Trash2 size={16} /> Delete This Plan</button>
-            </div>
-          </div>
+          {viewMode === 'BUDGET' && <Summary plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'CHECKLIST' && <Checklist plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'TIMELINE' && <Timeline plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'RUNSHEET' && <RunSheet plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'DESTINATION' && <DestinationMatrix plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'VENDORS' && <VendorManager plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'SEATING' && <SeatingMapper plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'LOGISTICS' && <LogisticsHub plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'WARDROBE' && isWedding && <WardrobeVault plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'FINANCE' && <FinancialPro plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'GUESTS' && <GuestIntelligence plan={currentPlan} onUpdate={handleUpdatePlan} />}
+          {viewMode === 'WEBSITE' && <WebsiteManager plan={currentPlan} onUpdate={handleUpdatePlan} onViewLive={() => setIsGuestView(true)} />}
         </div>
       </div>
     );
   } else {
+    // Dashboard / List View
     switch(activeTab) {
-      case 'home':
-      case 'create':
-        content = <LandingPage onCreateWedding={() => setIsCreatingWedding(true)} onCreateEvent={() => setIsCreatingEvent(true)} />;
-        break;
-      case 'list':
+      case 'create': 
+        // We can show a selection screen here or just default to one. 
+        // For now, let's show a simple selection card UI
         content = (
-          <div className="space-y-6 animate-in fade-in duration-500 pb-20 md:pb-0">
+          <div className="max-w-4xl mx-auto py-12 space-y-8 animate-in fade-in duration-500">
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl font-black text-slate-900">Start a New Project</h1>
+              <p className="text-slate-500">Choose the type of event you want to plan</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <button onClick={() => setIsCreatingWedding(true)} className="group bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-rose-100 transition-all text-left">
+                <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 mb-6 group-hover:scale-110 transition-transform">
+                  <Heart size={32} fill="currentColor" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 mb-2">Wedding</h3>
+                <p className="text-slate-500 text-sm">Complete wedding planner with rituals, wardrobe, and guest management.</p>
+              </button>
+              <button onClick={() => setIsCreatingEvent(true)} className="group bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all text-left">
+                <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-6 group-hover:scale-110 transition-transform">
+                  <Briefcase size={32} />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 mb-2">General Event</h3>
+                <p className="text-slate-500 text-sm">Perfect for corporate events, birthdays, parties, and anniversaries.</p>
+              </button>
+            </div>
+          </div>
+        );
+        break;
+        
+      case 'home':
+      case 'list':
+      default:
+        content = (
+          <div className="space-y-6 animate-in fade-in duration-500 pb-20 md:pb-0 px-1 md:px-0">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-              <div><h1 className="text-2xl md:text-3xl font-black text-slate-900">Your Plans</h1><p className="text-slate-500 text-sm md:text-base">All your event calculations in one place</p></div>
+              <div><h1 className="text-2xl md:text-3xl font-black text-slate-900">Dashboard</h1><p className="text-slate-500 text-sm md:text-base">Welcome back to your planning workspace</p></div>
               <div className="flex gap-2">
-                <button onClick={() => setIsCreatingWedding(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-rose-100 whitespace-nowrap hover:bg-rose-600 transition-colors"><Plus size={16} /> Wedding</button>
-                <button onClick={() => setIsCreatingEvent(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 whitespace-nowrap hover:bg-indigo-700 transition-colors"><Plus size={16} /> Event</button>
+                <button onClick={() => setIsCreatingWedding(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-rose-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-rose-100 hover:bg-rose-600 transition-all active:scale-95"><Plus size={16} /> Wedding</button>
+                <button onClick={() => setIsCreatingEvent(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95"><Plus size={16} /> Event</button>
               </div>
             </div>
+            
+            {/* Stats Overview (Mock) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Plans</p>
+                 <p className="text-2xl font-black text-slate-900">{plans.length}</p>
+               </div>
+               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Active Budget</p>
+                 <p className="text-2xl font-black text-slate-900">{CURRENCY}{plans.reduce((acc, p) => acc + Math.round(p.guestCount * 2500), 0).toLocaleString('en-IN')}</p>
+               </div>
+               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pending Tasks</p>
+                 <p className="text-2xl font-black text-slate-900">12</p>
+               </div>
+            </div>
 
-            <div className="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5">
+            <div className="bg-white p-4 md:p-6 rounded-[32px] border border-slate-100 shadow-sm space-y-5">
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Search className="h-4 w-4 text-slate-400" /></div>
-                <input ref={searchInputRef} type="text" className="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 text-sm transition-all" placeholder="Search plans..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-              </div>
-
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
-                <Filter size={14} className="text-slate-400 flex-shrink-0" /><FilterChip label="All" active={filterType === 'ALL'} onClick={() => setFilterType('ALL')} />
-                {(Object.keys(EventType) as Array<keyof typeof EventType>).map(type => <FilterChip key={type} label={type.charAt(0) + type.slice(1).toLowerCase()} active={filterType === EventType[type]} onClick={() => setFilterType(EventType[type])} />)}
+                <input type="text" className="block w-full pl-10 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 text-sm transition-all font-medium" placeholder="Search your plans..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               </div>
             </div>
-
-            {filteredPlans.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {filteredPlans.map(plan => {
-                  const total = plan.categories.reduce((acc, cat) => acc + cat.items.reduce((iAcc, item) => iAcc + item.cost, 0), 0) * (1 + plan.contingencyPercent/100);
-                  const bookings = getBookingStatus(plan);
-                  return (
-                    <div key={plan.id} onClick={() => setCurrentPlan(plan)} className="group bg-white p-5 md:p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col">
-                      <div className={`absolute top-0 right-0 w-20 h-20 -mr-8 -mt-8 rounded-full opacity-10 ${plan.type === EventType.WEDDING ? 'bg-rose-500' : 'bg-indigo-500'}`} />
-                      <div className="flex items-start justify-between mb-4">
-                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${plan.type === EventType.WEDDING ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-600'}`}>{EVENT_TYPE_ICONS[plan.type]}{plan.type}</div>
-                        <button onClick={(e) => handleDeletePlan(plan.id, e)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors z-10"><Trash2 size={16} /></button>
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">{plan.name}</h3>
-                      <div className="flex items-center gap-3 text-xs text-slate-400 font-medium mb-4"><span>{plan.guestCount} Guests</span><span>•</span><span className="flex items-center gap-1"><Clock size={12} /> {plan.timeline?.length || 0} slots</span></div>
-                      
-                      <div className="flex flex-wrap items-center gap-1.5 mb-6 no-print">
-                        <BookingIcon icon={<MapPin size={10} />} label="Venue" booked={bookings.venue} />
-                        <BookingIcon icon={<Utensils size={10} />} label="Catering" booked={bookings.caterer} />
-                        <BookingIcon icon={<Camera size={10} />} label="Photo" booked={bookings.photographer} />
-                      </div>
-
-                      <div className="mt-auto flex items-end justify-between">
-                        <div><p className="text-[10px] font-bold text-slate-400 uppercase">Est. Budget</p><p className="text-lg font-black text-slate-900">{CURRENCY}{Math.round(total).toLocaleString('en-IN')}</p></div>
-                        <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300"><ExternalLink size={18} /></div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="bg-white rounded-[32px] md:rounded-[40px] p-10 md:p-20 border border-dashed border-slate-200 text-center space-y-6">
-                <div className="w-20 h-20 bg-slate-50 text-slate-300 rounded-[28px] flex items-center justify-center mx-auto"><Search size={32} className="opacity-50" /></div>
-                <div className="max-w-xs mx-auto text-center"><h3 className="text-lg font-bold text-slate-900 mb-2">No matching plans</h3><p className="text-slate-500 text-sm">Clear your search or filter to see all your events.</p></div>
-              </div>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {filteredPlans.map(plan => (
+                <div key={plan.id} onClick={() => setCurrentPlan(plan)} className="group bg-white p-5 md:p-7 rounded-[40px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col">
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest self-start ${plan.type === EventType.WEDDING ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-600'}`}>{EVENT_TYPE_ICONS[plan.type]}{plan.type}</div>
+                  <h3 className="text-xl font-black text-slate-900 mt-5 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">{plan.name}</h3>
+                  <p className="text-xs text-slate-400 font-bold mb-6 uppercase tracking-wider">{plan.guestCount} Guests • {plan.city}</p>
+                  <div className="mt-auto flex items-end justify-between">
+                    <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Est. Budget</p><p className="text-xl font-black text-slate-900">{CURRENCY}{Math.round(plan.guestCount * 2500).toLocaleString('en-IN')}</p></div>
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm"><ExternalLink size={20} /></div>
+                  </div>
+                </div>
+              ))}
+              {filteredPlans.length === 0 && (
+                <div className="col-span-full py-20 text-center space-y-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[40px]">
+                   <p className="text-slate-400 font-bold">No matching plans found.</p>
+                   <button onClick={() => setIsCreatingEvent(true)} className="text-indigo-600 font-bold hover:underline">Create your first plan</button>
+                </div>
+              )}
+            </div>
           </div>
         );
         break;
@@ -301,50 +384,36 @@ const App: React.FC = () => {
       case 'contact': content = <Contact />; break;
       case 'privacy': content = <PrivacyPolicy />; break;
       case 'terms': content = <Terms />; break;
-      default: content = <LandingPage onCreateWedding={() => setIsCreatingWedding(true)} onCreateEvent={() => setIsCreatingEvent(true)} />;
     }
   }
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={handleTabChange}>
+    <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
       {content}
       
-      {/* Mobile Install Prompt */}
-      {showInstallBanner && (
-        <div className="fixed bottom-20 left-4 right-4 z-[60] animate-in slide-in-from-bottom-8 md:hidden">
-          <div className="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Download size={20} />
-              </div>
-              <div>
-                <p className="text-sm font-bold">Install EventWise</p>
-                <p className="text-[10px] text-slate-400">Add to home screen for offline use</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setShowInstallBanner(false)} className="px-3 py-2 text-[10px] font-bold text-slate-400">Later</button>
-              <button onClick={handleInstallClick} className="px-4 py-2 bg-indigo-600 rounded-xl text-[10px] font-bold shadow-lg shadow-indigo-900/40">Install</button>
-            </div>
-          </div>
+      {/* PWA Install Banner */}
+      {showInstallBanner && deferredPrompt && (
+        <div className="fixed bottom-20 md:bottom-8 left-4 right-4 md:left-auto md:right-8 md:w-80 bg-slate-900 text-white p-5 rounded-[32px] shadow-2xl z-[100] animate-in slide-in-from-bottom-full duration-500 flex items-center gap-4">
+           <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-900/50">
+              <Smartphone size={24} />
+           </div>
+           <div className="flex-1 min-w-0">
+              <p className="text-xs font-black uppercase tracking-widest text-indigo-400 mb-0.5">Mobile Pro</p>
+              <p className="text-sm font-bold text-slate-100 truncate">Install My Plan</p>
+              <p className="text-[10px] text-slate-400">Add to home screen for offline use</p>
+           </div>
+           <div className="flex flex-col gap-2">
+              <button onClick={handleDismissBanner} className="p-1.5 hover:bg-white/10 rounded-full transition-colors self-end"><X size={14}/></button>
+              <button onClick={handleInstallClick} className="px-4 py-2 bg-white text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-sm">Install</button>
+           </div>
         </div>
       )}
     </Layout>
   );
 };
 
-const BookingIcon: React.FC<{ icon: React.ReactNode, label: string, booked: boolean }> = ({ icon, label, booked }) => (
-  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[8px] font-bold uppercase tracking-tight transition-all ${booked ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>
-    {icon}<span className="hidden xs:inline">{label}</span>
-  </div>
-);
-
-const FilterChip: React.FC<{ label: string, active: boolean, onClick: () => void }> = ({ label, active, onClick }) => (
-  <button onClick={onClick} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all flex-shrink-0 border ${active ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-600'}`}>{label}</button>
-);
-
 const ViewTab: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string }> = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500'}`}>{icon}<span>{label}</span></button>
+  <button onClick={onClick} className={`flex items-center gap-2 px-4 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap active:scale-95 ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}>{icon}<span>{label}</span></button>
 );
 
 export default App;
