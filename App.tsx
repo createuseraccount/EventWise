@@ -21,8 +21,8 @@ import WebsiteManager from './components/PublicWebsite/WebsiteManager';
 import GuestLandingPage from './components/PublicWebsite/GuestLandingPage';
 import { HowToUse, SponsorUs, About, Contact, PrivacyPolicy, Terms } from './components/InfoPages';
 import { Plan, EventType, WeddingPlan, Snapshot, RSVP } from './types';
-import { storage } from './utils/storage';
 import { authService } from './src/services/authService';
+import { databaseService } from './src/services/databaseService';
 import { 
   Plus, 
   ArrowLeft, 
@@ -88,7 +88,12 @@ const App: React.FC = () => {
       
       if (session) {
         setIsLoggedIn(true);
-        setPlans(storage.getPlans());
+        try {
+          const fetchedPlans = await databaseService.fetchProjects();
+          setPlans(fetchedPlans);
+        } catch (error) {
+          console.error('Error fetching plans:', error);
+        }
       } else {
         setIsLoggedIn(false);
       }
@@ -98,10 +103,15 @@ const App: React.FC = () => {
     initAuth();
 
     // Listen for Auth Changes
-    const subscription = authService.onAuthStateChange((event, session) => {
+    const subscription = authService.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         setIsLoggedIn(true);
-        setPlans(storage.getPlans());
+        try {
+          const fetchedPlans = await databaseService.fetchProjects();
+          setPlans(fetchedPlans);
+        } catch (error) {
+          console.error('Error fetching plans:', error);
+        }
         setAuthView('LANDING');
       } else if (event === 'SIGNED_OUT') {
         setIsLoggedIn(false);
@@ -126,9 +136,14 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     // Supabase auth state change listener will handle the state update
-    setPlans(storage.getPlans());
+    try {
+      const fetchedPlans = await databaseService.fetchProjects();
+      setPlans(fetchedPlans);
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+    }
     setActiveTab('home');
   };
 
@@ -152,10 +167,17 @@ const App: React.FC = () => {
     sessionStorage.setItem('installBannerDismissed', 'true');
   };
 
-  const handleUpdatePlan = (updatedPlan: Plan) => {
-    storage.updatePlan(updatedPlan);
-    setPlans(storage.getPlans());
+  const handleUpdatePlan = async (updatedPlan: Plan) => {
+    // Optimistic UI update
+    setPlans(prev => prev.map(p => p.id === updatedPlan.id ? updatedPlan : p));
     setCurrentPlan(updatedPlan);
+    
+    try {
+      await databaseService.updateProject(updatedPlan);
+    } catch (error) {
+      console.error('Error updating plan:', error);
+      // In a real app, we'd show a toast and possibly revert the state
+    }
   };
 
   const handleRsvpSubmit = (rsvp: RSVP) => {
@@ -186,13 +208,20 @@ const App: React.FC = () => {
     setTimeout(() => setIsSaving(false), 2000);
   };
 
-  const handlePlanComplete = (plan: Plan) => {
-    setPlans(storage.getPlans());
+  const handlePlanComplete = async (plan: Plan) => {
+    // Optimistic UI update
+    setPlans(prev => [...prev, plan]);
     setCurrentPlan(plan);
     setIsCreatingWedding(false);
     setIsCreatingEvent(false);
     setActiveTab('list');
     setViewMode('BUDGET');
+
+    try {
+      await databaseService.createProject(plan);
+    } catch (error) {
+      console.error('Error creating plan:', error);
+    }
   };
 
   const filteredPlans = useMemo(() => {

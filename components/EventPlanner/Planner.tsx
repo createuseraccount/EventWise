@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { GeneralEventPlan, Tier, Quality, EventType } from '../../types';
-import { storage } from '../../utils/storage';
 import { 
   INITIAL_EVENT_CATEGORIES, 
   DEFAULT_EVENT_CHECKLIST, 
@@ -72,7 +71,6 @@ const GeneralEventPlanner: React.FC<PlannerProps> = ({ onComplete, onCancel }) =
         lastGuestCountAtSync: formData.guests
       }))
     };
-    storage.addPlan(newPlan);
     onComplete(newPlan);
   };
 

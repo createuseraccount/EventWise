@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { WeddingPlan, Tier, Quality, EventType, Vendor } from '../../types';
-import { storage } from '../../utils/storage';
 import { 
   INITIAL_WEDDING_CATEGORIES, 
   DEFAULT_WEDDING_CHECKLIST, 
@@ -69,7 +68,6 @@ const WeddingWizard: React.FC<WizardProps> = ({ onComplete, onCancel }) => {
       }))
     } as WeddingPlan;
 
-    storage.addPlan(finalPlan);
     onComplete(finalPlan);
   };
 
