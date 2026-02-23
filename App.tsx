@@ -20,6 +20,8 @@ import RunSheet from './components/ProModules/RunSheet';
 import WebsiteManager from './components/PublicWebsite/WebsiteManager';
 import GuestLandingPage from './components/PublicWebsite/GuestLandingPage';
 import { HowToUse, SponsorUs, About, Contact, PrivacyPolicy, Terms } from './components/InfoPages';
+import Support from './src/components/Support';
+import Settings from './src/components/Settings';
 import { Plan, EventType, WeddingPlan, Snapshot, RSVP } from './types';
 import { authService } from './src/services/authService';
 import { databaseService } from './src/services/databaseService';
@@ -408,6 +410,8 @@ const App: React.FC = () => {
         );
         break;
       case 'how-to': content = <HowToUse />; break;
+      case 'support': content = <Support />; break;
+      case 'settings': content = <Settings />; break;
       case 'sponsor': content = <SponsorUs />; break;
       case 'about': content = <About />; break;
       case 'contact': content = <Contact />; break;
