@@ -17,11 +17,13 @@ import WardrobeVault from './components/ProModules/WardrobeVault';
 import FinancialPro from './components/ProModules/FinancialPro';
 import DestinationMatrix from './components/ProModules/DestinationMatrix';
 import RunSheet from './components/ProModules/RunSheet';
+import ExportReports from './components/ProModules/ExportReports';
 import WebsiteManager from './components/PublicWebsite/WebsiteManager';
 import GuestLandingPage from './components/PublicWebsite/GuestLandingPage';
 import { HowToUse, SponsorUs, About, Contact, PrivacyPolicy, Terms } from './components/InfoPages';
 import Support from './src/components/Support';
 import Settings from './src/components/Settings';
+import DashboardAnalytics from './src/components/DashboardAnalytics';
 import { Plan, EventType, WeddingPlan, Snapshot, RSVP } from './types';
 import { authService } from './src/services/authService';
 import { databaseService } from './src/services/databaseService';
@@ -60,7 +62,7 @@ const EVENT_TYPE_ICONS: Record<EventType, React.ReactNode> = {
   [EventType.PARTY]: <Music size={12} />,
 };
 
-type ViewMode = 'BUDGET' | 'GUESTS' | 'CHECKLIST' | 'TIMELINE' | 'SPLIT' | 'VENDORS' | 'SEATING' | 'LOGISTICS' | 'WARDROBE' | 'FINANCE' | 'DESTINATION' | 'RUNSHEET' | 'WEBSITE';
+type ViewMode = 'BUDGET' | 'GUESTS' | 'CHECKLIST' | 'TIMELINE' | 'SPLIT' | 'VENDORS' | 'SEATING' | 'LOGISTICS' | 'WARDROBE' | 'FINANCE' | 'DESTINATION' | 'RUNSHEET' | 'WEBSITE' | 'REPORTS';
 type AuthView = 'LANDING' | 'LOGIN' | 'SIGNUP';
 
 const App: React.FC = () => {
@@ -301,6 +303,7 @@ const App: React.FC = () => {
             <ViewTab active={viewMode === 'LOGISTICS'} onClick={() => setViewMode('LOGISTICS')} icon={<Hotel size={16} />} label="Logistics" />
             <ViewTab active={viewMode === 'GUESTS'} onClick={() => setViewMode('GUESTS')} icon={<Users size={16} />} label="Guests" />
             <ViewTab active={viewMode === 'WEBSITE'} onClick={() => setViewMode('WEBSITE')} icon={<Globe size={16} />} label="Website" />
+            <ViewTab active={viewMode === 'REPORTS'} onClick={() => setViewMode('REPORTS')} icon={<Download size={16} />} label="Export" />
           </div>
         </div>
 
@@ -317,6 +320,7 @@ const App: React.FC = () => {
           {viewMode === 'FINANCE' && <FinancialPro plan={currentPlan} onUpdate={handleUpdatePlan} />}
           {viewMode === 'GUESTS' && <GuestIntelligence plan={currentPlan} onUpdate={handleUpdatePlan} />}
           {viewMode === 'WEBSITE' && <WebsiteManager plan={currentPlan} onUpdate={handleUpdatePlan} onViewLive={() => setIsGuestView(true)} />}
+          {viewMode === 'REPORTS' && <ExportReports plan={currentPlan} />}
         </div>
       </div>
     );
@@ -380,6 +384,8 @@ const App: React.FC = () => {
                  <p className="text-2xl font-black text-slate-900">12</p>
                </div>
             </div>
+
+            {plans.length > 0 && <DashboardAnalytics plans={plans} />}
 
             <div className="bg-white p-4 md:p-6 rounded-[32px] border border-slate-100 shadow-sm space-y-5">
               <div className="relative group">
