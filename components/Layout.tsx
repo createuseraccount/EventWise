@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, PlusCircle, List, Calculator, Coffee, HelpCircle, Mail, Info, Shield, Scale, LogOut, Settings } from 'lucide-react';
+import { Home, PlusCircle, List, Calculator, Coffee, HelpCircle, Mail, Info, Shield, Scale, LogOut, Settings, Crown } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -61,6 +61,13 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
           <nav className="space-y-1">
             <p className="px-3 text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Account</p>
             <NavItem 
+              icon={<Crown size={18} />} 
+              label="Upgrade to Pro" 
+              active={activeTab === 'pricing'} 
+              onClick={() => setActiveTab('pricing')} 
+              highlight
+            />
+            <NavItem 
               icon={<Settings size={18} />} 
               label="Settings" 
               active={activeTab === 'settings'} 
@@ -104,16 +111,18 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
   );
 };
 
-const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick }) => (
+const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, highlight }) => (
   <button 
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
       active 
         ? 'bg-indigo-50 text-indigo-700 font-semibold' 
-        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+        : highlight
+          ? 'bg-gradient-to-r from-amber-100 to-orange-50 text-amber-900 hover:from-amber-200 hover:to-orange-100 font-bold shadow-sm border border-amber-200/50'
+          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
     }`}
   >
-    <span className={`${active ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}`}>{icon}</span>
+    <span className={`${active ? 'text-indigo-600' : highlight ? 'text-amber-600' : 'text-slate-400 group-hover:text-slate-600'}`}>{icon}</span>
     <span className="text-sm">{label}</span>
   </button>
 );
@@ -130,6 +139,7 @@ interface NavItemProps {
   label: string;
   active?: boolean;
   onClick: () => void;
+  highlight?: boolean;
 }
 
 export default Layout;

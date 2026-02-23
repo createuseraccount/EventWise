@@ -24,6 +24,8 @@ import { HowToUse, SponsorUs, About, Contact, PrivacyPolicy, Terms } from './com
 import Support from './src/components/Support';
 import Settings from './src/components/Settings';
 import DashboardAnalytics from './src/components/DashboardAnalytics';
+import Pricing from './src/components/Pricing';
+import UpgradeModal from './src/components/UpgradeModal';
 import { Plan, EventType, WeddingPlan, Snapshot, RSVP } from './types';
 import { authService } from './src/services/authService';
 import { databaseService } from './src/services/databaseService';
@@ -80,6 +82,8 @@ const App: React.FC = () => {
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isGuestView, setIsGuestView] = useState(false);
+  const [userTier, setUserTier] = useState<'FREE' | 'PASS' | 'PRO'>('FREE');
+  const [upgradeModalFeature, setUpgradeModalFeature] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | EventType>('ALL');
@@ -212,6 +216,19 @@ const App: React.FC = () => {
     setTimeout(() => setIsSaving(false), 2000);
   };
 
+  const handleCreateProject = (type: 'wedding' | 'event') => {
+    if (userTier === 'FREE' && plans.length >= 2) {
+      setUpgradeModalFeature('More Projects (Free limit: 2)');
+      return;
+    }
+    if (userTier === 'PASS' && plans.length >= 5) {
+      setUpgradeModalFeature('Unlimited Projects (Pass limit: 5)');
+      return;
+    }
+    if (type === 'wedding') setIsCreatingWedding(true);
+    else setIsCreatingEvent(true);
+  };
+
   const handlePlanComplete = async (plan: Plan) => {
     // Optimistic UI update
     setPlans(prev => [...prev, plan]);
@@ -225,6 +242,14 @@ const App: React.FC = () => {
       await databaseService.createProject(plan);
     } catch (error) {
       console.error('Error creating plan:', error);
+    }
+  };
+
+  const handleProFeatureClick = (featureName: string, mode: ViewMode) => {
+    if (userTier === 'PASS' || userTier === 'PRO') {
+      setViewMode(mode);
+    } else {
+      setUpgradeModalFeature(featureName);
     }
   };
 
@@ -300,10 +325,11 @@ const App: React.FC = () => {
             <ViewTab active={viewMode === 'RUNSHEET'} onClick={() => setViewMode('RUNSHEET')} icon={<Zap size={16} />} label="Run Sheet" />
             <ViewTab active={viewMode === 'DESTINATION'} onClick={() => setViewMode('DESTINATION')} icon={<Plane size={16} />} label="Destination" />
             <ViewTab active={viewMode === 'VENDORS'} onClick={() => setViewMode('VENDORS')} icon={<Store size={16} />} label="Vendors" />
-            <ViewTab active={viewMode === 'LOGISTICS'} onClick={() => setViewMode('LOGISTICS')} icon={<Hotel size={16} />} label="Logistics" />
+            <ViewTab active={viewMode === 'SEATING'} onClick={() => handleProFeatureClick('Seating Mapper', 'SEATING')} icon={<Users size={16} />} label="Seating" isProBadge={userTier === 'FREE'} />
+            <ViewTab active={viewMode === 'LOGISTICS'} onClick={() => handleProFeatureClick('Logistics Hub', 'LOGISTICS')} icon={<Hotel size={16} />} label="Logistics" isProBadge={userTier === 'FREE'} />
             <ViewTab active={viewMode === 'GUESTS'} onClick={() => setViewMode('GUESTS')} icon={<Users size={16} />} label="Guests" />
             <ViewTab active={viewMode === 'WEBSITE'} onClick={() => setViewMode('WEBSITE')} icon={<Globe size={16} />} label="Website" />
-            <ViewTab active={viewMode === 'REPORTS'} onClick={() => setViewMode('REPORTS')} icon={<Download size={16} />} label="Export" />
+            <ViewTab active={viewMode === 'REPORTS'} onClick={() => handleProFeatureClick('Export & Reports', 'REPORTS')} icon={<Download size={16} />} label="Export" isProBadge={userTier === 'FREE'} />
           </div>
         </div>
 
@@ -337,14 +363,14 @@ const App: React.FC = () => {
               <p className="text-slate-500">Choose the type of event you want to plan</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <button onClick={() => setIsCreatingWedding(true)} className="group bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-rose-100 transition-all text-left">
+              <button onClick={() => handleCreateProject('wedding')} className="group bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-rose-100 transition-all text-left">
                 <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 mb-6 group-hover:scale-110 transition-transform">
                   <Heart size={32} fill="currentColor" />
                 </div>
                 <h3 className="text-xl font-black text-slate-900 mb-2">Wedding</h3>
                 <p className="text-slate-500 text-sm">Complete wedding planner with rituals, wardrobe, and guest management.</p>
               </button>
-              <button onClick={() => setIsCreatingEvent(true)} className="group bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all text-left">
+              <button onClick={() => handleCreateProject('event')} className="group bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all text-left">
                 <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-6 group-hover:scale-110 transition-transform">
                   <Briefcase size={32} />
                 </div>
@@ -364,8 +390,8 @@ const App: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div><h1 className="text-2xl md:text-3xl font-black text-slate-900">Dashboard</h1><p className="text-slate-500 text-sm md:text-base">Welcome back to your planning workspace</p></div>
               <div className="flex gap-2">
-                <button onClick={() => setIsCreatingWedding(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-rose-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-rose-100 hover:bg-rose-600 transition-all active:scale-95"><Plus size={16} /> Wedding</button>
-                <button onClick={() => setIsCreatingEvent(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95"><Plus size={16} /> Event</button>
+                <button onClick={() => handleCreateProject('wedding')} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-rose-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-rose-100 hover:bg-rose-600 transition-all active:scale-95"><Plus size={16} /> Wedding</button>
+                <button onClick={() => handleCreateProject('event')} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95"><Plus size={16} /> Event</button>
               </div>
             </div>
             
@@ -408,7 +434,7 @@ const App: React.FC = () => {
               {filteredPlans.length === 0 && (
                 <div className="col-span-full py-20 text-center space-y-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[40px]">
                    <p className="text-slate-400 font-bold">No matching plans found.</p>
-                   <button onClick={() => setIsCreatingEvent(true)} className="text-indigo-600 font-bold hover:underline">Create your first plan</button>
+                   <button onClick={() => handleCreateProject('event')} className="text-indigo-600 font-bold hover:underline">Create your first plan</button>
                 </div>
               )}
             </div>
@@ -418,6 +444,7 @@ const App: React.FC = () => {
       case 'how-to': content = <HowToUse />; break;
       case 'support': content = <Support />; break;
       case 'settings': content = <Settings />; break;
+      case 'pricing': content = <Pricing onBack={() => setActiveTab('home')} onUpgradeSuccess={(tier) => { setUserTier(tier); setActiveTab('home'); }} />; break;
       case 'sponsor': content = <SponsorUs />; break;
       case 'about': content = <About />; break;
       case 'contact': content = <Contact />; break;
@@ -447,12 +474,23 @@ const App: React.FC = () => {
            </div>
         </div>
       )}
+
+      <UpgradeModal 
+        isOpen={!!upgradeModalFeature} 
+        onClose={() => setUpgradeModalFeature(null)} 
+        onUpgrade={() => { setUpgradeModalFeature(null); setActiveTab('pricing'); }}
+        featureName={upgradeModalFeature || ''}
+      />
     </Layout>
   );
 };
 
-const ViewTab: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string }> = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex items-center gap-2 px-4 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap active:scale-95 ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}>{icon}<span>{label}</span></button>
+const ViewTab: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string, isProBadge?: boolean }> = ({ active, onClick, icon, label, isProBadge }) => (
+  <button onClick={onClick} className={`flex items-center gap-2 px-4 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap active:scale-95 ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}>
+    {icon}
+    <span>{label}</span>
+    {isProBadge && <span className="text-xs ml-1" title="Pro Feature">👑</span>}
+  </button>
 );
 
 export default App;

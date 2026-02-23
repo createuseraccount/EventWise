@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CheckCircle, Zap, Shield, Layout, ArrowRight, Star, Menu, X, Clock, Globe, Users, Store, Plane } from 'lucide-react';
+import { CheckCircle, Zap, Shield, Layout, ArrowRight, Star, Menu, X, Clock, Globe, Users, Store, Plane, Check } from 'lucide-react';
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -197,6 +197,91 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-base text-indigo-600 font-black uppercase tracking-widest">Pricing</h2>
+            <p className="mt-2 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+              Simple, transparent pricing
+            </p>
+            <p className="mt-4 max-w-2xl text-lg text-slate-500 mx-auto font-medium">
+              Start for free, upgrade when you need more power.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Free Plan */}
+            <div className="bg-slate-50 p-8 rounded-[32px] border border-slate-100 flex flex-col">
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Free Starter</h3>
+                <p className="text-slate-500 text-sm h-10">Perfect for small, simple events.</p>
+                <div className="mt-6">
+                  <span className="text-4xl font-black text-slate-900">₹0</span>
+                  <span className="text-slate-500 font-medium">/forever</span>
+                </div>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                <PricingFeature text="Up to 2 Active Projects" included />
+                <PricingFeature text="Unlimited Guests" included />
+                <PricingFeature text="Basic Budget & Checklist" included />
+                <PricingFeature text="Advanced Pro Modules" included={false} />
+              </ul>
+              <button onClick={onSignUp} className="w-full py-3 px-6 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors">
+                Start Free
+              </button>
+            </div>
+
+            {/* Event Pass */}
+            <div className="bg-indigo-600 p-8 rounded-[32px] border border-indigo-500 shadow-2xl shadow-indigo-200 flex flex-col relative transform md:-translate-y-4">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">
+                Most Popular
+              </div>
+              <div className="mb-8 text-white">
+                <h3 className="text-xl font-bold mb-2">Event Pass</h3>
+                <p className="text-indigo-200 text-sm h-10">Premium tools for a handful of events.</p>
+                <div className="mt-6">
+                  <span className="text-4xl font-black">₹99</span>
+                  <span className="text-indigo-200 font-medium">/one-time</span>
+                </div>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1 text-indigo-100">
+                <PricingFeature text="Up to 5 Active Projects" included light />
+                <PricingFeature text="Unlimited Guests" included light />
+                <PricingFeature text="Seating Mapper 👑" included light />
+                <PricingFeature text="PDF & CSV Exports 👑" included light />
+              </ul>
+              <button onClick={onSignUp} className="w-full py-3 px-6 bg-white text-indigo-600 rounded-xl font-black hover:bg-indigo-50 transition-colors shadow-lg">
+                Get Event Pass
+              </button>
+            </div>
+
+            {/* Pro Planner */}
+            <div className="bg-slate-50 p-8 rounded-[32px] border border-slate-100 flex flex-col">
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  Pro Planner <Star size={16} className="text-amber-400 fill-amber-400" />
+                </h3>
+                <p className="text-slate-500 text-sm h-10">For professional planners.</p>
+                <div className="mt-6">
+                  <span className="text-4xl font-black text-slate-900">₹999</span>
+                  <span className="text-slate-500 font-medium">/one-time</span>
+                </div>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                <PricingFeature text="Unlimited Projects" included />
+                <PricingFeature text="All Pro Modules 👑" included />
+                <PricingFeature text="White-label Exports" included />
+                <PricingFeature text="Priority Support" included />
+              </ul>
+              <button onClick={onSignUp} className="w-full py-3 px-6 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-lg">
+                Get Pro Planner
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-white border-t border-slate-100 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -228,6 +313,19 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, titl
       {description}
     </p>
   </div>
+);
+
+const PricingFeature = ({ text, included, light = false }: { text: string, included: boolean, light?: boolean }) => (
+  <li className="flex items-start gap-3">
+    {included ? (
+      <Check size={20} className={`flex-shrink-0 ${light ? 'text-indigo-300' : 'text-emerald-500'}`} />
+    ) : (
+      <X size={20} className="flex-shrink-0 text-slate-300" />
+    )}
+    <span className={`text-sm font-medium ${!included ? 'text-slate-400 line-through' : ''}`}>
+      {text}
+    </span>
+  </li>
 );
 
 export default LandingPage;
