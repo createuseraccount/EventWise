@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CheckCircle, Zap, Shield, Layout, ArrowRight, Star, Menu, X, Clock, Globe, Users, Store, Plane, Check } from 'lucide-react';
+import { CheckCircle, Zap, Shield, Layout, ArrowRight, Star, Menu, X, Clock, Globe, Users, Store, Plane, Check, Quote } from 'lucide-react';
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -197,6 +197,45 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-24 bg-slate-900 text-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500 opacity-20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-rose-500 opacity-20 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none" />
+          
+          <div className="text-center mb-20 relative z-10">
+            <h2 className="text-base text-indigo-400 font-black uppercase tracking-widest">Testimonials</h2>
+            <p className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">
+              Loved by planners worldwide
+            </p>
+            <p className="mt-4 max-w-2xl text-lg text-slate-400 mx-auto font-medium">
+              See what professional event coordinators and DIY couples are saying about My Plan.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+            <TestimonialCard 
+              quote="This app completely changed how I run my wedding planning business. The seating mapper alone saves me hours of headache per client."
+              author="Sarah Jenkins"
+              role="Professional Wedding Planner"
+              image="https://picsum.photos/seed/sarah/100/100"
+            />
+            <TestimonialCard 
+              quote="We used My Plan for our own wedding. Being able to track the budget, RSVPs, and vendor contracts in one place kept us sane!"
+              author="Michael & David"
+              role="Happy Couple"
+              image="https://picsum.photos/seed/couple/100/100"
+            />
+            <TestimonialCard 
+              quote="The PDF exports are beautiful and professional. I hand the run sheet to my day-of coordinators and everything runs flawlessly."
+              author="Elena Rodriguez"
+              role="Corporate Event Director"
+              image="https://picsum.photos/seed/elena/100/100"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -312,6 +351,22 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, titl
     <p className="text-slate-500 leading-relaxed">
       {description}
     </p>
+  </div>
+);
+
+const TestimonialCard = ({ quote, author, role, image }: { quote: string, author: string, role: string, image: string }) => (
+  <div className="bg-slate-800/50 backdrop-blur-sm p-8 rounded-[32px] border border-slate-700 flex flex-col">
+    <Quote className="text-indigo-400 mb-6 opacity-50" size={32} />
+    <p className="text-slate-300 text-lg leading-relaxed mb-8 flex-1">
+      "{quote}"
+    </p>
+    <div className="flex items-center gap-4">
+      <img src={image} alt={author} className="w-12 h-12 rounded-full object-cover border-2 border-slate-700" referrerPolicy="no-referrer" />
+      <div>
+        <h4 className="font-bold text-white">{author}</h4>
+        <p className="text-sm text-slate-400">{role}</p>
+      </div>
+    </div>
   </div>
 );
 

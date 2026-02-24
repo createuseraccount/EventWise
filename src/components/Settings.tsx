@@ -256,14 +256,11 @@ const Settings: React.FC = () => {
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-white/20">
                         <Star size={14} className="text-amber-400" /> Pro Plan
                       </div>
-                      <h3 className="text-3xl font-black mb-1">₹4,999<span className="text-lg text-slate-400 font-medium">/year</span></h3>
-                      <p className="text-slate-300 text-sm">Your next billing date is October 15, 2024.</p>
+                      <h3 className="text-3xl font-black mb-1">₹999<span className="text-lg text-slate-400 font-medium">/one-time</span></h3>
+                      <p className="text-slate-300 text-sm">You have lifetime access to Pro Planner features.</p>
                     </div>
                     
                     <div className="flex flex-col gap-3">
-                      <button className="px-6 py-3 bg-white text-indigo-900 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg">
-                        Manage Subscription
-                      </button>
                       <button className="px-6 py-3 bg-white/10 text-white border border-white/20 rounded-xl font-bold hover:bg-white/20 transition-colors">
                         View Invoices
                       </button>

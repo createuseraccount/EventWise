@@ -395,22 +395,6 @@ const App: React.FC = () => {
               </div>
             </div>
             
-            {/* Stats Overview (Mock) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Plans</p>
-                 <p className="text-2xl font-black text-slate-900">{plans.length}</p>
-               </div>
-               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Active Budget</p>
-                 <p className="text-2xl font-black text-slate-900">{CURRENCY}{plans.reduce((acc, p) => acc + Math.round(p.guestCount * 2500), 0).toLocaleString('en-IN')}</p>
-               </div>
-               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pending Tasks</p>
-                 <p className="text-2xl font-black text-slate-900">12</p>
-               </div>
-            </div>
-
             {plans.length > 0 && <DashboardAnalytics plans={plans} />}
 
             <div className="bg-white p-4 md:p-6 rounded-[32px] border border-slate-100 shadow-sm space-y-5">

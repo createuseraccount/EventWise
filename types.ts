@@ -30,6 +30,7 @@ export interface ChecklistItem {
   id: string;
   task: string;
   completed: boolean;
+  dueDate?: string;
 }
 
 export interface TimelineItem {
