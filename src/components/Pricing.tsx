@@ -14,13 +14,94 @@ const Pricing: React.FC<PricingProps> = ({ onBack, onUpgradeSuccess }) => {
     setCheckoutPlan(plan);
   };
 
-  const processPayment = () => {
+  const processPayment = async () => {
     setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
+    
+    try {
+      const amount = checkoutPlan === 'pass' ? 99 : 999;
+      
+      // 1. Create order on server
+      const orderResponse = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount,
+          currency: 'INR',
+          receipt: `receipt_${Date.now()}`,
+        }),
+      });
+      
+      if (!orderResponse.ok) {
+        throw new Error('Failed to create order');
+      }
+      
+      const order = await orderResponse.json();
+
+      // 2. Initialize Razorpay Checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
+        amount: order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+        currency: order.currency,
+        name: 'EventWise Planner',
+        description: `Upgrade to ${checkoutPlan === 'pass' ? 'Event Pass' : 'Pro Planner'}`,
+        order_id: order.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+        handler: async function (response: any) {
+          // 3. Verify payment on server
+          try {
+            const verifyResponse = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            
+            if (verifyResponse.ok) {
+              onUpgradeSuccess(checkoutPlan === 'pass' ? 'PASS' : 'PRO');
+            } else {
+              alert('Payment verification failed. Please contact support.');
+            }
+          } catch (error) {
+            console.error('Verification error:', error);
+            alert('Payment verification failed. Please contact support.');
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        prefill: {
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+          contact: '9999999999',
+        },
+        theme: {
+          color: '#4f46e5',
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessing(false);
+          }
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        console.error(response.error);
+        alert('Payment failed: ' + response.error.description);
+        setIsProcessing(false);
+      });
+      rzp.open();
+      
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Could not initialize payment. Please try again later.');
       setIsProcessing(false);
-      onUpgradeSuccess(checkoutPlan === 'pass' ? 'PASS' : 'PRO');
-    }, 2000);
+    }
   };
 
   if (checkoutPlan) {
@@ -48,50 +129,8 @@ const Pricing: React.FC<PricingProps> = ({ onBack, onUpgradeSuccess }) => {
             <div className="flex items-center gap-4 p-4 bg-indigo-50 text-indigo-700 rounded-2xl border border-indigo-100">
               <Shield size={24} />
               <div>
-                <p className="font-bold">Secure Payment Simulation</p>
-                <p className="text-sm">This is a mock checkout flow. No real charges will be made.</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Card Information</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <CreditCard className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <input 
-                    type="text" 
-                    defaultValue="4242 4242 4242 4242"
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-mono"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Expiry Date</label>
-                  <input 
-                    type="text" 
-                    defaultValue="12/25"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">CVC</label>
-                  <input 
-                    type="text" 
-                    defaultValue="123"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-mono"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Name on Card</label>
-                <input 
-                  type="text" 
-                  defaultValue="John Doe"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                />
+                <p className="font-bold">Secure Payment</p>
+                <p className="text-sm">You will be redirected to Razorpay to complete your purchase securely.</p>
               </div>
             </div>
 
