@@ -183,6 +183,45 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ plan, onUpdate, onViewL
                   </label>
                 </div>
 
+                {/* Location Details */}
+                {config.showLocation && (
+                  <div className="space-y-4 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <h4 className="font-bold text-slate-900">Location Details</h4>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Venue Name / Address</label>
+                      <input 
+                        type="text" 
+                        value={config.locationName || ''}
+                        onChange={(e) => updateConfig({ locationName: e.target.value })}
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm font-medium"
+                        placeholder="e.g. The Grand Hotel, City Center"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Google Maps Link</label>
+                      <input 
+                        type="url" 
+                        value={config.googleMapsLink || ''}
+                        onChange={(e) => updateConfig({ googleMapsLink: e.target.value })}
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm font-medium"
+                        placeholder="https://maps.google.com/..."
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Contact Details */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Contact Number</label>
+                  <input 
+                    type="tel" 
+                    value={config.contactNumber || ''}
+                    onChange={(e) => updateConfig({ contactNumber: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                    placeholder="Phone number for guest queries"
+                  />
+                </div>
+
                 {/* Custom Message */}
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-2">Welcome Message</label>

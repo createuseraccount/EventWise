@@ -126,18 +126,28 @@ const GuestLandingPage: React.FC<GuestLandingPageProps> = ({ plan, onRsvpSubmit,
               <p className="text-slate-500">Getting to the venue</p>
             </div>
             
-            {plan.vendors.find(v => v.category === 'Venue') ? (
+            {config.locationName || plan.vendors.find(v => v.category === 'Venue') ? (
               (() => {
-                const venue = plan.vendors.find(v => v.category === 'Venue')!;
+                const venue = plan.vendors.find(v => v.category === 'Venue');
+                const locationName = config.locationName || venue?.name || 'Venue Name';
+                const mapLink = config.googleMapsLink || venue?.mapLink;
+                const contact = config.contactNumber || venue?.contact;
+                
                 return (
                   <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-8 items-center">
                     <div className="flex-1 space-y-4 text-center md:text-left">
-                      <h3 className="text-2xl font-bold text-slate-900">{venue.name || 'Venue Name'}</h3>
-                      <p className="text-slate-600 leading-relaxed whitespace-pre-line">{venue.address || 'Address details will be updated soon.'}</p>
+                      <h3 className="text-2xl font-bold text-slate-900">{locationName}</h3>
+                      {venue?.address && !config.locationName && (
+                        <p className="text-slate-600 leading-relaxed whitespace-pre-line">{venue.address}</p>
+                      )}
                       
-                      {venue.mapLink && (
+                      {contact && (
+                        <p className="text-slate-600 font-medium">Contact: {contact}</p>
+                      )}
+                      
+                      {mapLink && (
                         <a 
-                          href={venue.mapLink} 
+                          href={mapLink} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
@@ -147,10 +157,10 @@ const GuestLandingPage: React.FC<GuestLandingPageProps> = ({ plan, onRsvpSubmit,
                       )}
                     </div>
                     
-                    {venue.mapLink ? (
+                    {mapLink ? (
                       <div className="w-full md:w-1/2 h-64 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 relative group">
                          {/* We can't embed real google maps without API key, so we show a placeholder that links out */}
-                         <a href={venue.mapLink} target="_blank" rel="noopener noreferrer" className="absolute inset-0 flex items-center justify-center bg-slate-100 group-hover:bg-slate-200 transition-colors">
+                         <a href={mapLink} target="_blank" rel="noopener noreferrer" className="absolute inset-0 flex items-center justify-center bg-slate-100 group-hover:bg-slate-200 transition-colors">
                             <div className="text-center space-y-2">
                                <MapPin size={40} className="mx-auto text-indigo-500" />
                                <p className="font-bold text-slate-600">View on Map</p>

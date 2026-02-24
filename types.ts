@@ -191,6 +191,9 @@ export interface PublicPageConfig {
   themeColor?: string;
   showTimeline: boolean;
   showLocation: boolean;
+  locationName?: string;
+  googleMapsLink?: string;
+  contactNumber?: string;
   allowRsvp: boolean;
   customMessage?: string;
 }
