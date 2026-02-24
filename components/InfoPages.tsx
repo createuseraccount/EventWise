@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { HelpCircle, Coffee, Mail, Info, Shield, Scale, CheckCircle2, Heart, ExternalLink, Calculator, Globe, Lock } from 'lucide-react';
+import React, { useState } from 'react';
+import { HelpCircle, Coffee, Mail, Info, Shield, Scale, CheckCircle2, Heart, ExternalLink, Calculator, Globe, Lock, Send } from 'lucide-react';
 
 export const HowToUse: React.FC = () => (
   <div className="max-w-4xl mx-auto space-y-12 py-8 animate-in fade-in duration-500">
@@ -100,22 +100,84 @@ export const About: React.FC = () => (
   </div>
 );
 
-export const Contact: React.FC = () => (
-  <div className="max-w-xl mx-auto py-20 text-center space-y-8 animate-in fade-in duration-500">
-    <div className="w-24 h-24 bg-indigo-50 text-indigo-600 rounded-[40px] flex items-center justify-center mx-auto mb-8">
-      <Mail size={48} />
+export const Contact: React.FC = () => {
+  const [contactForm, setContactForm] = useState({ subject: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    // Simulate API call
+    setTimeout(() => {
+      window.location.href = `mailto:support-eventwise@localtools.in?subject=${encodeURIComponent(contactForm.subject)}&body=${encodeURIComponent(contactForm.message)}`;
+      setIsSubmitting(false);
+      setSubmitSuccess(true);
+      setContactForm({ subject: '', message: '' });
+      setTimeout(() => setSubmitSuccess(false), 3000);
+    }, 500);
+  };
+
+  return (
+    <div className="max-w-xl mx-auto py-20 text-center space-y-8 animate-in fade-in duration-500">
+      <div className="w-24 h-24 bg-indigo-50 text-indigo-600 rounded-[40px] flex items-center justify-center mx-auto mb-8">
+        <Mail size={48} />
+      </div>
+      <h2 className="text-4xl font-black text-slate-900">Get in Touch</h2>
+      <p className="text-slate-500 text-lg leading-relaxed mb-6">
+        Report a bug, ask a billing question, or just say hi. We usually respond within 24 hours.
+      </p>
+      
+      <div className="text-left bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+        {submitSuccess ? (
+          <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl flex items-center gap-3">
+            <CheckCircle2 size={20} />
+            <p className="font-medium">Message prepared! Opening your email client...</p>
+          </div>
+        ) : (
+          <form onSubmit={handleContactSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Subject</label>
+              <select 
+                required
+                value={contactForm.subject}
+                onChange={e => setContactForm({...contactForm, subject: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="">Select a topic...</option>
+                <option value="Bug Report">Report a Bug</option>
+                <option value="Billing Question">Billing Question</option>
+                <option value="General Help">General Help</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Message</label>
+              <textarea 
+                required
+                rows={5}
+                value={contactForm.message}
+                onChange={e => setContactForm({...contactForm, message: e.target.value})}
+                placeholder="Please describe your issue in detail..."
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+              />
+            </div>
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors disabled:opacity-70"
+            >
+              <Send size={18} /> Send Message
+            </button>
+            <p className="text-xs text-slate-400 mt-4 text-center">
+              Or email us directly at <a href="mailto:support-eventwise@localtools.in" className="text-indigo-600 hover:underline">support-eventwise@localtools.in</a>
+            </p>
+          </form>
+        )}
+      </div>
     </div>
-    <h2 className="text-4xl font-black text-slate-900">Get in Touch</h2>
-    <p className="text-slate-500 text-lg leading-relaxed">
-      Have a feature request? Found a bug? Or just want to say hi? We'd love to hear from you.
-    </p>
-    <div className="pt-6">
-      <a href="mailto:contact@localtools.in" className="text-3xl font-black text-indigo-600 hover:text-indigo-700 transition-colors underline decoration-indigo-200 underline-offset-8">
-        contact@localtools.in
-      </a>
-    </div>
-  </div>
-);
+  );
+};
 
 export const PrivacyPolicy: React.FC = () => (
   <div className="max-w-4xl mx-auto py-12 space-y-10 animate-in fade-in duration-500">
@@ -123,19 +185,19 @@ export const PrivacyPolicy: React.FC = () => (
     <div className="prose prose-slate max-w-none space-y-6 text-slate-600 leading-relaxed">
       <p className="text-xl font-bold text-slate-800">Your data is yours. Period.</p>
       <p>
-        EventWise Planner Pro (and its parent platform localtools.in) is built on a "Privacy-by-Design" architecture. We do not store any of your event data on our servers.
+        EventWise Planner Pro (and its parent platform localtools.in) is built on a "Privacy-by-Design" architecture. We prioritize the security and privacy of your event data.
       </p>
       <div className="space-y-4">
-        <h3 className="text-lg font-bold text-slate-900">1. Data Collection</h3>
-        <p>We do not collect personal information, email addresses, or phone numbers. We do not use tracking cookies or third-party analytics scripts that track your browsing behavior across other sites.</p>
+        <h3 className="text-lg font-bold text-slate-900">1. Data Collection & Storage</h3>
+        <p>We collect and store your account information (email) and event planning data securely using Supabase, our backend provider. This allows you to access your plans across multiple devices. We do not use tracking cookies or third-party analytics scripts that track your browsing behavior across other sites.</p>
       </div>
       <div className="space-y-4">
-        <h3 className="text-lg font-bold text-slate-900">2. Local Storage</h3>
-        <p>All plans, guest lists, and vendor information are stored exclusively in your browser's <code>LocalStorage</code>. This means the data never travels over the network to any server. If you clear your browser cache or use a different device, your data will not be available there unless you manually export and import it.</p>
+        <h3 className="text-lg font-bold text-slate-900">2. Payment Processing</h3>
+        <p>If you choose to upgrade to a paid plan, your payment information is processed securely by Razorpay. We do not store your credit card details or sensitive payment information on our servers.</p>
       </div>
       <div className="space-y-4">
         <h3 className="text-lg font-bold text-slate-900">3. Third Party Links</h3>
-        <p>Our app provides links to external sites (like PayPal). These sites have their own privacy policies which you should review.</p>
+        <p>Our app provides links to external sites (like payment gateways). These sites have their own privacy policies which you should review.</p>
       </div>
     </div>
   </div>
@@ -151,12 +213,12 @@ export const Terms: React.FC = () => (
         <p>This tool is provided for estimation and organizational purposes only. While we strive for accuracy, actual costs from vendors may vary based on market conditions, negotiations, and seasonal demand. We are not responsible for any financial decisions made based on this tool.</p>
       </div>
       <div className="space-y-4">
-        <h3 className="text-lg font-bold text-slate-900">2. Personal Use</h3>
-        <p>The tool is free for personal use. Commercial redistribution of the underlying code or logic without attribution to localtools.in is prohibited.</p>
+        <h3 className="text-lg font-bold text-slate-900">2. Account & Usage</h3>
+        <p>You are responsible for maintaining the security of your account. The tool offers a free tier for personal use, and premium features are available via paid upgrades. Commercial redistribution of the underlying code or logic without attribution to localtools.in is prohibited.</p>
       </div>
       <div className="space-y-4">
         <h3 className="text-lg font-bold text-slate-900">3. No Warranty</h3>
-        <p>We do not guarantee that the service will be available 100% of the time. Since data is stored locally, we are not responsible for data loss due to browser resets or hardware failure.</p>
+        <p>We do not guarantee that the service will be available 100% of the time. We are not responsible for data loss due to unforeseen technical issues or hardware failure.</p>
       </div>
     </div>
   </div>

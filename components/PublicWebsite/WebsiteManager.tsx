@@ -29,7 +29,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ plan, onUpdate, onViewL
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`https://myplan.app/e/${config.slug}`);
+    navigator.clipboard.writeText(`https://eventwise.app/e/${config.slug}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -121,7 +121,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ plan, onUpdate, onViewL
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Public Link</p>
-                    <p className="text-sm font-medium text-slate-700 truncate">https://myplan.app/e/{config.slug}</p>
+                    <p className="text-sm font-medium text-slate-700 truncate">https://eventwise.app/e/{config.slug}</p>
                   </div>
                   <button 
                     onClick={handleCopyLink}

@@ -17,8 +17,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">MP</div>
-              <span className="font-bold text-xl tracking-tight">My Plan</span>
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">EW</div>
+              <span className="font-bold text-xl tracking-tight">EventWise</span>
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
@@ -209,7 +209,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
               Loved by planners worldwide
             </p>
             <p className="mt-4 max-w-2xl text-lg text-slate-400 mx-auto font-medium">
-              See what professional event coordinators and DIY couples are saying about My Plan.
+              See what professional event coordinators and DIY couples are saying about EventWise.
             </p>
           </div>
 
@@ -221,7 +221,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
               image="https://picsum.photos/seed/sarah/100/100"
             />
             <TestimonialCard 
-              quote="We used My Plan for our own wedding. Being able to track the budget, RSVPs, and vendor contracts in one place kept us sane!"
+              quote="We used EventWise for our own wedding. Being able to track the budget, RSVPs, and vendor contracts in one place kept us sane!"
               author="Michael & David"
               role="Happy Couple"
               image="https://picsum.photos/seed/couple/100/100"
@@ -325,8 +325,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
       <footer className="bg-white border-t border-slate-100 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-indigo-600 rounded-md flex items-center justify-center text-white font-bold text-xs">MP</div>
-            <span className="font-bold text-slate-900">My Plan</span>
+            <div className="w-6 h-6 bg-indigo-600 rounded-md flex items-center justify-center text-white font-bold text-xs">EW</div>
+            <span className="font-bold text-slate-900">EventWise</span>
           </div>
           <div className="flex gap-8 text-sm text-slate-500">
             <a href="#" className="hover:text-indigo-600">Privacy</a>
@@ -334,7 +334,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
             <a href="#" className="hover:text-indigo-600">Contact</a>
           </div>
           <p className="text-sm text-slate-400">
-            © {new Date().getFullYear()} My Plan Inc.
+            © {new Date().getFullYear()} EventWise Inc.
           </p>
         </div>
       </footer>

@@ -449,7 +449,7 @@ const App: React.FC = () => {
            </div>
            <div className="flex-1 min-w-0">
               <p className="text-xs font-black uppercase tracking-widest text-indigo-400 mb-0.5">Mobile Pro</p>
-              <p className="text-sm font-bold text-slate-100 truncate">Install My Plan</p>
+              <p className="text-sm font-bold text-slate-100 truncate">Install EventWise</p>
               <p className="text-[10px] text-slate-400">Add to home screen for offline use</p>
            </div>
            <div className="flex flex-col gap-2">

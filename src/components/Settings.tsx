@@ -224,7 +224,7 @@ const Settings: React.FC = () => {
                   />
                   <ToggleRow 
                     title="Product Updates" 
-                    description="News about new features, templates, and improvements to My Plan." 
+                    description="News about new features, templates, and improvements to EventWise." 
                     defaultChecked={true} 
                   />
                 </div>

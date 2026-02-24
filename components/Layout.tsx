@@ -15,8 +15,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
       {/* Mobile Header */}
       <header className="md:hidden bg-white border-b px-4 py-3 flex items-center justify-between sticky top-0 z-50 no-print">
         <div className="flex items-center gap-2" onClick={() => setActiveTab('home')}>
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">MP</div>
-          <span className="font-bold text-lg">My Plan</span>
+          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">EW</div>
+          <span className="font-bold text-lg">EventWise</span>
         </div>
         <button onClick={onLogout} className="p-2 text-slate-400 hover:text-indigo-600">
           <LogOut size={20} />
@@ -30,7 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
             <Calculator size={24} />
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">My Plan</h1>
+            <h1 className="font-bold text-lg leading-tight">EventWise</h1>
             <p className="text-xs text-slate-400 font-medium tracking-wide uppercase">Pro Dashboard</p>
           </div>
         </div>

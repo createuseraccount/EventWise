@@ -299,7 +299,7 @@ const GuestLandingPage: React.FC<GuestLandingPageProps> = ({ plan, onRsvpSubmit,
 
         {/* Footer */}
         <div className="text-center py-12 border-t border-slate-200">
-          <p className="text-slate-400 text-sm">Powered by <span className="font-bold text-slate-600">My Plan</span></p>
+          <p className="text-slate-400 text-sm">Powered by <span className="font-bold text-slate-600">EventWise</span></p>
         </div>
       </div>
     </div>
