@@ -1,5 +1,5 @@
 {
-  "name": "My Plan",
-  "description": "A professional SaaS-style event planning MVP with mock authentication and local storage.",
+  "name": "EventWise",
+  "description": "Professional Event & Wedding Planner App with budget tracking, guest management, and vendor checklists.",
   "requestFramePermissions": []
 }

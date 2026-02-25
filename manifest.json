@@ -2,7 +2,7 @@
 {
   "name": "EventWise Planner Pro",
   "short_name": "EventWise",
-  "description": "Smart Event & Wedding Planning Calculator",
+  "description": "Plan weddings, corporate events, and parties effortlessly with EventWise. Features include budget tracking, guest list management, vendor checklists, and RSVP websites.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
