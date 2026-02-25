@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CheckCircle, Zap, Shield, Layout, ArrowRight, Star, Menu, X, Clock, Globe, Users, Store, Plane, Check, Quote } from 'lucide-react';
+import { CheckCircle, Zap, Shield, Layout, ArrowRight, Star, Menu, X, Clock, Globe, Users, Store, Plane, Check, Quote, ChevronDown } from 'lucide-react';
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -25,6 +25,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
               <a href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Features</a>
               <a href="#testimonials" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Testimonials</a>
               <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Pricing</a>
+              <a href="#faq" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">FAQ</a>
               <button onClick={onLogin} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Log in</button>
               <button onClick={onSignUp} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200">
                 Sign up free
@@ -44,6 +45,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
           <div className="md:hidden bg-white border-b border-slate-100 px-4 py-4 space-y-4 animate-in slide-in-from-top-5">
             <a href="#features" className="block text-sm font-medium text-slate-600" onClick={() => setIsMenuOpen(false)}>Features</a>
             <a href="#testimonials" className="block text-sm font-medium text-slate-600" onClick={() => setIsMenuOpen(false)}>Testimonials</a>
+            <a href="#pricing" className="block text-sm font-medium text-slate-600" onClick={() => setIsMenuOpen(false)}>Pricing</a>
+            <a href="#faq" className="block text-sm font-medium text-slate-600" onClick={() => setIsMenuOpen(false)}>FAQ</a>
             <button onClick={() => { onLogin(); setIsMenuOpen(false); }} className="block w-full text-left text-sm font-medium text-slate-600">Log in</button>
             <button onClick={() => { onSignUp(); setIsMenuOpen(false); }} className="block w-full px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium text-center">Sign up free</button>
           </div>
@@ -321,6 +324,36 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section id="faq" className="py-24 bg-slate-50">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-base text-indigo-600 font-black uppercase tracking-widest">FAQ</h2>
+            <p className="mt-2 text-4xl font-black tracking-tight text-slate-900">
+              Common Questions
+            </p>
+          </div>
+          <div className="space-y-6">
+            <FaqItem 
+              question="Is my data safe?" 
+              answer="Absolutely. We use enterprise-grade security via Supabase. Your data is encrypted in transit and at rest, and we never sell your personal information to third parties." 
+            />
+            <FaqItem 
+              question="Can I plan multiple events?" 
+              answer="Yes! The Free plan allows up to 2 active projects. The Event Pass allows up to 5, and the Pro Planner plan gives you unlimited projects." 
+            />
+            <FaqItem 
+              question="How does the Pro Planner plan work?" 
+              answer="The Pro Planner plan is a one-time purchase that unlocks all premium features forever. This includes unlimited projects, white-label PDF exports, and the advanced seating mapper." 
+            />
+            <FaqItem 
+              question="Can I invite my partner or client to collaborate?" 
+              answer="Multi-user collaboration is currently in beta and will be rolling out to all Event Pass and Pro Planner users very soon!" 
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-white border-t border-slate-100 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -382,6 +415,28 @@ const PricingFeature = ({ text, included, light = false }: { text: string, inclu
     </span>
   </li>
 );
+
+const FaqItem = ({ question, answer }: { question: string, answer: string }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden transition-all hover:border-indigo-200">
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none"
+      >
+        <span className="font-bold text-slate-900">{question}</span>
+        <span className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
+          <ChevronDown className="text-slate-400" size={20} />
+        </span>
+      </button>
+      {isOpen && (
+        <div className="px-6 pb-4 text-slate-600 leading-relaxed animate-in slide-in-from-top-2">
+          {answer}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default LandingPage;
 
