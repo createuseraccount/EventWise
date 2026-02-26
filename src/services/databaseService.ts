@@ -9,11 +9,10 @@ export const databaseService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    // Supabase RLS policies will automatically filter this to projects
-    // the user owns OR is a member of in project_members
     const { data, error } = await supabase
       .from('projects')
-      .select('plan_data');
+      .select('plan_data')
+      .eq('user_id', user.id);
 
     if (error) throw error;
     
@@ -52,9 +51,6 @@ export const databaseService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    // We remove the .eq('user_id', user.id) check here so that collaborators
-    // can also update the project. Supabase RLS policies will ensure only
-    // authorized users (owners or members) can perform the update.
     const { error } = await supabase
       .from('projects')
       .update({
@@ -64,7 +60,8 @@ export const databaseService = {
         guest_count: plan.guestCount,
         plan_data: plan
       })
-      .eq('id', plan.id);
+      .eq('id', plan.id)
+      .eq('user_id', user.id);
 
     if (error) throw error;
 
