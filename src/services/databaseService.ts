@@ -11,12 +11,12 @@ export const databaseService = {
 
     const { data, error } = await supabase
       .from('projects')
-      .select('plan_data')
+      .select('metadata')
       .eq('user_id', user.id);
 
     if (error) throw error;
     
-    return data ? data.map(row => row.plan_data as Plan) : [];
+    return data ? data.map(row => row.metadata as Plan) : [];
   },
 
   /**
@@ -35,7 +35,7 @@ export const databaseService = {
         event_type: plan.type,
         city: plan.city,
         guest_count: plan.guestCount,
-        plan_data: plan
+        metadata: plan
       });
 
     if (error) throw error;
@@ -58,7 +58,7 @@ export const databaseService = {
         event_type: plan.type,
         city: plan.city,
         guest_count: plan.guestCount,
-        plan_data: plan
+        metadata: plan
       })
       .eq('id', plan.id)
       .eq('user_id', user.id);
@@ -90,11 +90,15 @@ export const databaseService = {
    * This ensures the relational tables are kept in sync with the plan_data JSONB
    */
   async syncRelationalData(plan: Plan): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     // 0. Sync Functions
     if ('functions' in plan && Array.isArray(plan.functions)) {
       const functions = plan.functions.map(fName => ({
         id: `${plan.id}-${fName.replace(/\s+/g, '-').toLowerCase()}`,
         project_id: plan.id,
+        user_id: user.id,
         function_name: fName,
         guest_count: plan.guestCount
       }));
@@ -109,6 +113,7 @@ export const databaseService = {
         cat.items.map(item => ({
           id: item.id,
           project_id: plan.id,
+          user_id: user.id,
           category: cat.name,
           item_name: item.label,
           estimated_cost: item.cost,
@@ -128,6 +133,7 @@ export const databaseService = {
       const vendors = plan.vendors.map(v => ({
         id: v.id,
         project_id: plan.id,
+        user_id: user.id,
         vendor_name: v.name,
         category: v.category,
         cost: v.budgetedAmount,
@@ -143,6 +149,7 @@ export const databaseService = {
       const guests = plan.rsvps.map(g => ({
         id: g.id,
         project_id: plan.id,
+        user_id: user.id,
         guest_name: g.name,
         side: null, // Not tracked in RSVP
         rsvp_status: g.status,
@@ -156,6 +163,7 @@ export const databaseService = {
       const tasks = plan.checklist.map(t => ({
         id: t.id,
         project_id: plan.id,
+        user_id: user.id,
         task_name: t.task,
         status: t.completed ? 'COMPLETED' : 'PENDING',
         priority: 'NORMAL'
@@ -168,6 +176,7 @@ export const databaseService = {
       const events = plan.timeline.map(t => ({
         id: t.id,
         project_id: plan.id,
+        user_id: user.id,
         event_name: t.activity,
         event_time: t.time,
         notes: t.notes || null
@@ -179,9 +188,13 @@ export const databaseService = {
   // --- Fine-grained functions as requested ---
 
   async saveBudgetItem(projectId: string, item: BudgetItem, categoryName: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { error } = await supabase.from('budget_items').upsert({
       id: item.id,
       project_id: projectId,
+      user_id: user.id,
       category: categoryName,
       item_name: item.label,
       estimated_cost: item.cost,
@@ -193,9 +206,13 @@ export const databaseService = {
   },
 
   async updateVendor(projectId: string, vendor: Vendor): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { error } = await supabase.from('vendors').upsert({
       id: vendor.id,
       project_id: projectId,
+      user_id: user.id,
       vendor_name: vendor.name,
       category: vendor.category,
       cost: vendor.budgetedAmount,

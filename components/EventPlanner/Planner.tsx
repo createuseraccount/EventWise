@@ -11,7 +11,7 @@ import {
   VENDOR_CATEGORIES,
   GET_DEFAULT_VENDOR_CHECKLIST
 } from '../../constants';
-import { PartyPopper, ArrowRight, X, MapPin } from 'lucide-react';
+import { PartyPopper, ArrowRight, X, MapPin, Loader2, Sparkles, Check } from 'lucide-react';
 
 interface PlannerProps {
   onComplete: (plan: GeneralEventPlan) => void;
@@ -19,6 +19,8 @@ interface PlannerProps {
 }
 
 const GeneralEventPlanner: React.FC<PlannerProps> = ({ onComplete, onCancel }) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
     type: EventType.BIRTHDAY,
@@ -38,40 +40,49 @@ const GeneralEventPlanner: React.FC<PlannerProps> = ({ onComplete, onCancel }) =
   };
 
   const handleCreate = () => {
-    const newPlan: GeneralEventPlan = {
-      id: Date.now().toString(),
-      name: formData.name,
-      type: formData.type,
-      city: formData.city,
-      guestCount: formData.guests,
-      tier: formData.tier,
-      quality: formData.quality,
-      durationHours: formData.duration,
-      isOutdoor: formData.isOutdoor,
-      createdAt: Date.now(),
-      checklist: DEFAULT_EVENT_CHECKLIST.map(task => ({
-        id: Math.random().toString(36).substr(2, 9),
-        task,
-        completed: false
-      })),
-      timeline: [...DEFAULT_EVENT_TIMELINE],
-      guestStats: { ...DEFAULT_GUEST_STATS }, // Default init
-      giftConfig: { ...DEFAULT_GIFT_CONFIG },
-      categories: INITIAL_EVENT_CATEGORIES(formData.quality, formData.tier, formData.guests),
-      contingencyPercent: 5,
-      vendors: VENDOR_CATEGORIES.map(cat => ({
-        id: Math.random().toString(36).substr(2, 9),
-        category: cat,
-        name: '',
-        contact: '',
-        budgetedAmount: 0,
-        actualPaid: 0,
-        checklist: GET_DEFAULT_VENDOR_CHECKLIST(cat),
-        notes: '',
-        lastGuestCountAtSync: formData.guests
-      }))
-    };
-    onComplete(newPlan);
+    setIsGenerating(true);
+    
+    // Simulate magic generation steps
+    setTimeout(() => setLoadingStep(1), 800);
+    setTimeout(() => setLoadingStep(2), 1600);
+    setTimeout(() => setLoadingStep(3), 2400);
+    
+    setTimeout(() => {
+      const newPlan: GeneralEventPlan = {
+        id: Date.now().toString(),
+        name: formData.name,
+        type: formData.type,
+        city: formData.city,
+        guestCount: formData.guests,
+        tier: formData.tier,
+        quality: formData.quality,
+        durationHours: formData.duration,
+        isOutdoor: formData.isOutdoor,
+        createdAt: Date.now(),
+        checklist: DEFAULT_EVENT_CHECKLIST.map(task => ({
+          id: Math.random().toString(36).substr(2, 9),
+          task,
+          completed: false
+        })),
+        timeline: [...DEFAULT_EVENT_TIMELINE],
+        guestStats: { ...DEFAULT_GUEST_STATS }, // Default init
+        giftConfig: { ...DEFAULT_GIFT_CONFIG },
+        categories: INITIAL_EVENT_CATEGORIES(formData.quality, formData.tier, formData.guests),
+        contingencyPercent: 5,
+        vendors: VENDOR_CATEGORIES.map(cat => ({
+          id: Math.random().toString(36).substr(2, 9),
+          category: cat,
+          name: '',
+          contact: '',
+          budgetedAmount: 0,
+          actualPaid: 0,
+          checklist: GET_DEFAULT_VENDOR_CHECKLIST(cat),
+          notes: '',
+          lastGuestCountAtSync: formData.guests
+        }))
+      };
+      onComplete(newPlan);
+    }, 3200);
   };
 
   return (
@@ -87,13 +98,43 @@ const GeneralEventPlanner: React.FC<PlannerProps> = ({ onComplete, onCancel }) =
               <p className="text-sm text-slate-500">Birthday, Corporate or Parties</p>
             </div>
           </div>
-          <button onClick={onCancel} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          {!isGenerating && <button onClick={onCancel} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>}
         </div>
 
-        <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Event Name</label>
-            <input
+        {isGenerating ? (
+          <div className="py-12 flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in duration-500">
+            <div className="relative">
+              <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center animate-pulse">
+                <Sparkles className="text-indigo-600 w-10 h-10" />
+              </div>
+              <div className="absolute inset-0 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-slate-900">Crafting Your Plan...</h2>
+              <p className="text-slate-500">Our AI is building your perfect event blueprint</p>
+            </div>
+
+            <div className="w-full max-w-sm space-y-4 text-left mt-8">
+              <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                {loadingStep >= 1 ? <Check className="text-emerald-500" size={18} /> : <Loader2 className="animate-spin text-indigo-600" size={18} />}
+                <span className={loadingStep >= 1 ? 'text-slate-900' : 'text-slate-500'}>Generating smart checklist...</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                {loadingStep >= 2 ? <Check className="text-emerald-500" size={18} /> : loadingStep >= 1 ? <Loader2 className="animate-spin text-indigo-600" size={18} /> : <div className="w-[18px]" />}
+                <span className={loadingStep >= 2 ? 'text-slate-900' : loadingStep >= 1 ? 'text-slate-500' : 'text-slate-300'}>Calculating budget split...</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                {loadingStep >= 3 ? <Check className="text-emerald-500" size={18} /> : loadingStep >= 2 ? <Loader2 className="animate-spin text-indigo-600" size={18} /> : <div className="w-[18px]" />}
+                <span className={loadingStep >= 3 ? 'text-slate-900' : loadingStep >= 2 ? 'text-slate-500' : 'text-slate-300'}>Building event timeline...</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Event Name</label>
+              <input
               type="text"
               placeholder="e.g. 30th Birthday Bash"
               value={formData.name}
@@ -180,6 +221,7 @@ const GeneralEventPlanner: React.FC<PlannerProps> = ({ onComplete, onCancel }) =
             Generate Estimate <ArrowRight size={20} />
           </button>
         </div>
+        )}
       </div>
     </div>
   );
