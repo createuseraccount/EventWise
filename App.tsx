@@ -137,12 +137,26 @@ const App: React.FC = () => {
       }
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (['privacy', 'terms', 'contact'].includes(hash)) {
+        setActiveTab(hash);
+        if (!isLoggedIn) {
+          // Temporarily set auth view to something else so Layout renders the info page
+          // Or better, handle it in the render logic below
+        }
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange(); // Check on initial load
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('hashchange', handleHashChange);
       subscription.unsubscribe();
     };
-  }, []);
+  }, [isLoggedIn]);
 
   const handleLogin = async () => {
     // Supabase auth state change listener will handle the state update
@@ -280,6 +294,28 @@ const App: React.FC = () => {
 
   // Auth Flow Rendering
   if (!isLoggedIn) {
+    // Handle public info pages even when not logged in
+    if (['privacy', 'terms', 'contact'].includes(activeTab)) {
+      let publicContent;
+      switch(activeTab) {
+        case 'privacy': publicContent = <PrivacyPolicy />; break;
+        case 'terms': publicContent = <Terms />; break;
+        case 'contact': publicContent = <Contact />; break;
+      }
+      return (
+        <div className="min-h-screen bg-slate-50">
+          <nav className="bg-white border-b border-slate-100 px-4 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActiveTab('home'); window.location.hash = ''; }}>
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">EW</div>
+              <span className="font-bold text-xl tracking-tight">EventWise</span>
+            </div>
+            <button onClick={() => { setActiveTab('home'); window.location.hash = ''; }} className="text-sm font-bold text-slate-500 hover:text-indigo-600">Back to Home</button>
+          </nav>
+          {publicContent}
+        </div>
+      );
+    }
+
     switch (authView) {
       case 'LOGIN':
         return <Login onLogin={handleLogin} onNavigateToSignUp={() => setAuthView('SIGNUP')} onBack={() => setAuthView('LANDING')} />;

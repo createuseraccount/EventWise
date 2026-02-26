@@ -61,7 +61,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onNavigateToSignUp, onBack }) =>
         </button>
         <div className="flex justify-center">
           <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200">
-            MP
+            EW
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">

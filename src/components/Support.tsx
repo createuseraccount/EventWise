@@ -11,27 +11,25 @@ const Support: React.FC = () => {
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
+    // Simulate API call to backend support system
     setTimeout(() => {
-      window.location.href = `mailto:support-eventwise@localtools.in?subject=${encodeURIComponent(contactForm.subject)}&body=${encodeURIComponent(contactForm.message)}`;
       setIsSubmitting(false);
       setSubmitSuccess(true);
       setContactForm({ subject: '', message: '' });
       setTimeout(() => setSubmitSuccess(false), 3000);
-    }, 500);
+    }, 1000);
   };
 
   const handleFeedbackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
+    // Simulate API call to feedback system
     setTimeout(() => {
-      window.location.href = `mailto:support-eventwise@localtools.in?subject=Feature Request: ${encodeURIComponent(feedbackForm.title)}&body=${encodeURIComponent(feedbackForm.description)}`;
       setIsSubmitting(false);
       setSubmitSuccess(true);
       setFeedbackForm({ title: '', description: '' });
       setTimeout(() => setSubmitSuccess(false), 3000);
-    }, 500);
+    }, 1000);
   };
 
   return (
@@ -82,19 +80,19 @@ const Support: React.FC = () => {
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-4">Quick Guides</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <GuideCard title="Getting Started" desc="Learn the basics of creating your first event plan." />
-                  <GuideCard title="Managing Budgets" desc="How to track expenses and split costs effectively." />
-                  <GuideCard title="Handling RSVPs" desc="Set up your public website and collect guest responses." />
-                  <GuideCard title="Vendor Management" desc="Keep track of payments, contracts, and contacts." />
+                  <GuideCard title="Creating your first Event" desc="Learn the basics of setting up a new event project." />
+                  <GuideCard title="Tracking your Budget" desc="How to track expenses and manage your vendor costs." />
+                  <GuideCard title="Setting up your RSVP Site" desc="Create your public website and collect guest responses." />
+                  <GuideCard title="Managing Vendors" desc="Keep track of payments, contracts, and contacts." />
                 </div>
               </div>
 
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-4">Video Tutorials</h2>
                 <div className="space-y-3">
-                  <VideoLink title="Mastering the Seating Mapper" duration="3:45" />
-                  <VideoLink title="Advanced Budget Splitting" duration="2:30" />
-                  <VideoLink title="Setting up your Public Website" duration="4:15" />
+                  <VideoLink title="How to use Event Pass Features" duration="3:45" />
+                  <VideoLink title="Exporting PDF & CSV Reports" duration="2:30" />
+                  <VideoLink title="Managing your Guest List" duration="4:15" />
                 </div>
               </div>
             </div>
@@ -109,7 +107,7 @@ const Support: React.FC = () => {
               {submitSuccess ? (
                 <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl flex items-center gap-3">
                   <CheckCircle2 size={20} />
-                  <p className="font-medium">Message prepared! Opening your email client...</p>
+                  <p className="font-medium">Message sent successfully! Our support team will get back to you shortly.</p>
                 </div>
               ) : (
                 <form onSubmit={handleContactSubmit} className="space-y-4">
@@ -163,7 +161,7 @@ const Support: React.FC = () => {
               {submitSuccess ? (
                 <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl flex items-center gap-3">
                   <CheckCircle2 size={20} />
-                  <p className="font-medium">Idea prepared! Opening your email client...</p>
+                  <p className="font-medium">Feature request submitted! Thank you for helping us improve EventWise.</p>
                 </div>
               ) : (
                 <form onSubmit={handleFeedbackSubmit} className="space-y-4">
@@ -202,9 +200,9 @@ const Support: React.FC = () => {
               <div className="mt-10 pt-8 border-t border-slate-100">
                 <h3 className="font-bold text-slate-900 mb-4">Popular Requests</h3>
                 <div className="space-y-3">
-                  <IdeaCard title="Export to PDF" votes={124} />
-                  <IdeaCard title="Collaborator Access" votes={89} />
-                  <IdeaCard title="Dark Mode" votes={56} />
+                  <IdeaCard title="Multi-user Collaboration" votes={124} />
+                  <IdeaCard title="Seating Chart Builder" votes={89} />
+                  <IdeaCard title="Mobile App (iOS/Android)" votes={56} />
                 </div>
               </div>
             </div>

@@ -1,20 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Bell, CreditCard, Shield, Download, Trash2, Globe, Moon, Sun, Monitor, CheckCircle2, Loader2, Save } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'notifications' | 'billing' | 'data'>('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [fullName, setFullName] = useState('');
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        setFullName(user.user_metadata?.full_name || '');
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
+    
+    if (activeTab === 'profile' && user) {
+      const { error } = await supabase.auth.updateUser({
+        data: { full_name: fullName }
+      });
+      if (!error) {
+        setSaveSuccess(true);
+      }
+    } else {
+      // Simulate saving for other tabs
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    }, 1000);
+    }
+
+    setIsSaving(false);
+    setTimeout(() => setSaveSuccess(false), 3000);
   };
+
+  const userRole = user?.user_metadata?.role || 'free';
+  const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : 'EW';
 
   return (
     <div className="max-w-5xl mx-auto py-8 animate-in fade-in duration-500">
@@ -78,7 +105,7 @@ const Settings: React.FC = () => {
                 <h2 className="text-xl font-bold text-slate-900 mb-6">Profile Information</h2>
                 <div className="flex items-center gap-6 mb-8">
                   <div className="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl font-black shadow-inner">
-                    MP
+                    {userInitial}
                   </div>
                   <div>
                     <button type="button" className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm">
@@ -93,7 +120,9 @@ const Settings: React.FC = () => {
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Full Name</label>
                     <input 
                       type="text" 
-                      defaultValue="John Doe"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Enter your full name"
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
@@ -101,7 +130,7 @@ const Settings: React.FC = () => {
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
                     <input 
                       type="email" 
-                      defaultValue="john@example.com"
+                      value={user?.email || ''}
                       disabled
                       className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 cursor-not-allowed"
                     />
@@ -248,40 +277,36 @@ const Settings: React.FC = () => {
             <div className="space-y-8 animate-in fade-in">
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-6">Current Plan</h2>
-                <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-900/20">
+                <div className={`rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl ${userRole === 'pro_planner' ? 'bg-gradient-to-br from-indigo-900 to-slate-900 shadow-indigo-900/20' : userRole === 'event_pass' ? 'bg-indigo-600 shadow-indigo-200' : 'bg-slate-800 shadow-slate-200'}`}>
                   <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
                   
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                     <div>
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-white/20">
-                        <Star size={14} className="text-amber-400" /> Pro Plan
+                        {userRole === 'pro_planner' ? <><Star size={14} className="text-amber-400" /> Pro Planner</> : userRole === 'event_pass' ? 'Event Pass' : 'Free Starter'}
                       </div>
-                      <h3 className="text-3xl font-black mb-1">₹999<span className="text-lg text-slate-400 font-medium">/one-time</span></h3>
-                      <p className="text-slate-300 text-sm">You have lifetime access to Pro Planner features.</p>
+                      <h3 className="text-3xl font-black mb-1">
+                        {userRole === 'pro_planner' ? '₹999' : userRole === 'event_pass' ? '₹99' : '₹0'}
+                        <span className="text-lg text-slate-400 font-medium">{userRole === 'free' ? '/forever' : '/one-time'}</span>
+                      </h3>
+                      <p className="text-slate-300 text-sm">
+                        {userRole === 'pro_planner' ? 'You have lifetime access to all Pro Planner features.' : userRole === 'event_pass' ? 'You have access to premium tools for a handful of events.' : 'You are currently on the free plan.'}
+                      </p>
                     </div>
                     
                     <div className="flex flex-col gap-3">
-                      <button className="px-6 py-3 bg-white/10 text-white border border-white/20 rounded-xl font-bold hover:bg-white/20 transition-colors">
-                        View Invoices
-                      </button>
+                      {userRole !== 'free' && (
+                        <button className="px-6 py-3 bg-white/10 text-white border border-white/20 rounded-xl font-bold hover:bg-white/20 transition-colors">
+                          View Invoices
+                        </button>
+                      )}
+                      {userRole === 'free' && (
+                        <button className="px-6 py-3 bg-white text-slate-900 rounded-xl font-bold hover:bg-slate-50 transition-colors">
+                          Upgrade Plan
+                        </button>
+                      )}
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-slate-100">
-                <h2 className="text-xl font-bold text-slate-900 mb-6">Payment Method</h2>
-                <div className="flex items-center justify-between p-5 border border-slate-200 rounded-2xl">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-8 bg-slate-100 rounded flex items-center justify-center font-bold text-slate-500 text-xs border border-slate-200">
-                      VISA
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900">Visa ending in 4242</p>
-                      <p className="text-sm text-slate-500">Expires 12/2025</p>
-                    </div>
-                  </div>
-                  <button className="text-indigo-600 font-bold text-sm hover:underline">Edit</button>
                 </div>
               </div>
             </div>

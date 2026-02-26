@@ -24,7 +24,9 @@ const RunSheet: React.FC<RunSheetProps> = ({ plan, onUpdate }) => {
   const [activeTab, setActiveTab] = useState<'FLOW' | 'DIRECTORY'>('FLOW');
 
   const conflicts = useMemo(() => {
-    const sorted = [...(plan.timeline || [])].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+    if (!plan.timeline || plan.timeline.length === 0) return new Set<string>();
+    
+    const sorted = [...plan.timeline].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
     const overlapIds = new Set<string>();
     
     for (let i = 0; i < sorted.length - 1; i++) {
@@ -33,8 +35,9 @@ const RunSheet: React.FC<RunSheetProps> = ({ plan, onUpdate }) => {
       const currentMin = timeToMinutes(current.time);
       const nextMin = timeToMinutes(next.time);
       
-      // Basic 30-min buffer or explicit end-time check
-      if (nextMin < currentMin + 30) {
+      // Basic 15-min buffer (30 mins is often too strict for fast-paced events)
+      // Only flag if they are literally scheduled at the exact same time or within 15 mins
+      if (nextMin < currentMin + 15 && nextMin >= currentMin) {
         overlapIds.add(current.id);
         overlapIds.add(next.id);
       }
@@ -65,24 +68,42 @@ const RunSheet: React.FC<RunSheetProps> = ({ plan, onUpdate }) => {
            {conflicts.size > 0 && (
              <div className="p-4 bg-rose-50 border border-rose-200 rounded-[32px] flex items-center gap-4 text-rose-700 animate-pulse">
                 <AlertTriangle className="flex-shrink-0" />
-                <p className="text-xs font-bold">CONFLICT DETECTED: Multiple items are scheduled within 30 minutes of each other. Review your flow.</p>
+                <p className="text-xs font-bold">CONFLICT DETECTED: Multiple items are scheduled within 15 minutes of each other. Review your flow.</p>
              </div>
            )}
            <div className="space-y-4">
               {[...(plan.timeline || [])].sort((a,b) => timeToMinutes(a.time) - timeToMinutes(b.time)).map(item => (
-                <div key={item.id} className={`p-6 rounded-[32px] border flex items-center gap-6 transition-all ${conflicts.has(item.id) ? 'bg-rose-50/50 border-rose-200' : 'bg-white border-slate-100 hover:shadow-lg'}`}>
-                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-sm flex-shrink-0 shadow-sm ${conflicts.has(item.id) ? 'bg-rose-500 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                <div key={item.id} className={`p-6 rounded-[32px] border flex flex-col md:flex-row md:items-center gap-4 md:gap-6 transition-all ${conflicts.has(item.id) ? 'bg-rose-50/50 border-rose-200' : 'bg-white border-slate-100 hover:shadow-lg'}`}>
+                   <div className={`w-24 h-12 md:w-20 md:h-20 rounded-2xl flex items-center justify-center font-black text-sm md:text-base flex-shrink-0 shadow-sm ${conflicts.has(item.id) ? 'bg-rose-500 text-white' : 'bg-slate-100 text-slate-600'}`}>
                       {item.time}
                    </div>
                    <div className="flex-1">
-                      <h4 className="font-black text-slate-900">{item.activity}</h4>
-                      <p className="text-xs text-slate-400 font-medium">{item.notes || 'No details provided'}</p>
+                      <h4 className="font-black text-slate-900 text-lg">{item.activity}</h4>
+                      <p className="text-sm text-slate-500 font-medium mt-1">{item.notes || 'No details provided'}</p>
                    </div>
-                   <div className="flex gap-2">
-                      <button className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all"><UserCheck size={18}/></button>
+                   <div className="flex gap-2 self-end md:self-auto">
+                      <button 
+                        onClick={() => {
+                          const updatedTimeline = plan.timeline.filter(t => t.id !== item.id);
+                          onUpdate({ ...plan, timeline: updatedTimeline });
+                        }}
+                        className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-600 hover:text-white transition-all"
+                        title="Remove from timeline"
+                      >
+                        <AlertTriangle size={18}/>
+                      </button>
+                      <button className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-emerald-600 hover:text-white transition-all" title="Mark Complete">
+                        <UserCheck size={18}/>
+                      </button>
                    </div>
                 </div>
               ))}
+              {(!plan.timeline || plan.timeline.length === 0) && (
+                <div className="py-20 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[40px] text-center text-slate-400">
+                  <Clock size={48} className="mx-auto mb-4 opacity-20" />
+                  <p className="font-medium">Your timeline is empty.<br/>Add events in the Timeline tab first.</p>
+                </div>
+              )}
            </div>
         </div>
       ) : (

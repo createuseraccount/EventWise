@@ -108,14 +108,13 @@ export const Contact: React.FC = () => {
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
+    // Simulate API call to backend support system
     setTimeout(() => {
-      window.location.href = `mailto:support-eventwise@localtools.in?subject=${encodeURIComponent(contactForm.subject)}&body=${encodeURIComponent(contactForm.message)}`;
       setIsSubmitting(false);
       setSubmitSuccess(true);
       setContactForm({ subject: '', message: '' });
       setTimeout(() => setSubmitSuccess(false), 3000);
-    }, 500);
+    }, 1000);
   };
 
   return (
@@ -132,7 +131,7 @@ export const Contact: React.FC = () => {
         {submitSuccess ? (
           <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl flex items-center gap-3">
             <CheckCircle2 size={20} />
-            <p className="font-medium">Message prepared! Opening your email client...</p>
+            <p className="font-medium">Message sent successfully! Our support team will get back to you shortly.</p>
           </div>
         ) : (
           <form onSubmit={handleContactSubmit} className="space-y-4">

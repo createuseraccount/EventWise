@@ -362,9 +362,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
             <span className="font-bold text-slate-900">EventWise</span>
           </div>
           <div className="flex gap-8 text-sm text-slate-500">
-            <a href="#" className="hover:text-indigo-600">Privacy</a>
-            <a href="#" className="hover:text-indigo-600">Terms</a>
-            <a href="#" className="hover:text-indigo-600">Contact</a>
+            <button onClick={() => window.location.hash = 'privacy'} className="hover:text-indigo-600">Privacy</button>
+            <button onClick={() => window.location.hash = 'terms'} className="hover:text-indigo-600">Terms</button>
+            <button onClick={() => window.location.hash = 'contact'} className="hover:text-indigo-600">Contact</button>
           </div>
           <p className="text-sm text-slate-400">
             © {new Date().getFullYear()} EventWise Inc.
