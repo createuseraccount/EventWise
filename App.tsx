@@ -20,6 +20,7 @@ import RunSheet from './components/ProModules/RunSheet';
 import ExportReports from './components/ProModules/ExportReports';
 import WebsiteManager from './components/PublicWebsite/WebsiteManager';
 import GuestLandingPage from './components/PublicWebsite/GuestLandingPage';
+import ShareModal from './src/components/Shared/ShareModal';
 import { HowToUse, SponsorUs, About, Contact, PrivacyPolicy, Terms } from './components/InfoPages';
 import Support from './src/components/Support';
 import Settings from './src/components/Settings';
@@ -84,6 +85,7 @@ const App: React.FC = () => {
   const [isGuestView, setIsGuestView] = useState(false);
   const [userTier, setUserTier] = useState<'FREE' | 'PASS' | 'PRO'>('FREE');
   const [upgradeModalFeature, setUpgradeModalFeature] = useState<string | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | EventType>('ALL');
@@ -345,6 +347,14 @@ const App: React.FC = () => {
               <p className="text-[10px] md:text-sm text-slate-500 uppercase font-black tracking-widest flex items-center gap-2">{EVENT_TYPE_ICONS[currentPlan.type]}{currentPlan.type} • {currentPlan.quality}</p>
             </div>
             <button 
+              onClick={() => setIsShareModalOpen(true)} 
+              className="p-2.5 rounded-xl transition-all flex items-center gap-2 group bg-white border border-slate-100 text-slate-400 hover:border-indigo-600 hover:text-indigo-600 shadow-sm"
+              title="Share Project"
+            >
+              <Users size={20} className="group-hover:scale-110 transition-transform" />
+              <span className="hidden md:inline text-sm font-bold">Share</span>
+            </button>
+            <button 
               onClick={createQuickSnapshot} 
               className={`p-2.5 rounded-xl transition-all flex items-center gap-2 group ${isSaving ? 'bg-emerald-600 text-white shadow-emerald-100' : 'bg-white border border-slate-100 text-slate-400 hover:border-indigo-600 hover:text-indigo-600 shadow-sm'}`}
               title="Quick Snapshot"
@@ -384,6 +394,14 @@ const App: React.FC = () => {
           {viewMode === 'WEBSITE' && <WebsiteManager plan={currentPlan} onUpdate={handleUpdatePlan} onViewLive={() => setIsGuestView(true)} />}
           {viewMode === 'REPORTS' && <ExportReports plan={currentPlan} />}
         </div>
+
+        {currentPlan && (
+          <ShareModal 
+            isOpen={isShareModalOpen} 
+            onClose={() => setIsShareModalOpen(false)} 
+            plan={currentPlan} 
+          />
+        )}
       </div>
     );
   } else {
