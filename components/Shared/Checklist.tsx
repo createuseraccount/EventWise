@@ -1,22 +1,23 @@
 
 import React, { useState } from 'react';
-import { Plan, ChecklistItem } from '../../types';
+import { ChecklistItem } from '../../types';
 import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
+import { List } from 'react-window';
+import { usePlanStore } from '../../src/store/usePlanStore';
 
-interface ChecklistProps {
-  plan: Plan;
-  onUpdate: (updatedPlan: Plan) => void;
-}
-
-const Checklist: React.FC<ChecklistProps> = ({ plan, onUpdate }) => {
+const Checklist: React.FC = () => {
+  const plan = usePlanStore(state => state.currentPlan);
+  const updatePlan = usePlanStore(state => state.updatePlan);
   const [newTask, setNewTask] = useState('');
+
+  if (!plan) return null;
 
   const toggleTask = (id: string) => {
     const newChecklist = plan.checklist.map(item => 
       item.id === id ? { ...item, completed: !item.completed } : item
     );
-    onUpdate({ ...plan, checklist: newChecklist });
+    updatePlan({ checklist: newChecklist });
   };
 
   const addTask = (e: React.FormEvent) => {
@@ -27,26 +28,53 @@ const Checklist: React.FC<ChecklistProps> = ({ plan, onUpdate }) => {
       task: newTask.trim(),
       completed: false
     };
-    onUpdate({ ...plan, checklist: [...plan.checklist, newItem] });
+    updatePlan({ checklist: [...plan.checklist, newItem] });
     setNewTask('');
   };
 
   const deleteTask = (id: string) => {
-    onUpdate({ ...plan, checklist: plan.checklist.filter(item => item.id !== id) });
+    updatePlan({ checklist: plan.checklist.filter(item => item.id !== id) });
   };
 
   const handleDeletePlan = () => {
     if (confirm('Are you sure you want to delete this plan? This action cannot be undone.')) {
-      // In a real app, this would delete the plan. 
-      // Since we are inside a component that receives 'plan' as prop, 
-      // we might need a callback for deletion or handle it in parent.
-      // For now, we'll just alert as this component doesn't have deletePlan prop.
       alert('Delete functionality would be triggered here.');
     }
   };
 
   const completedCount = plan.checklist.filter(i => i.completed).length;
   const progressPercent = plan.checklist.length ? Math.round((completedCount / plan.checklist.length) * 100) : 0;
+
+  // Row component for react-window
+  const Row = ({ index, style }: { index: number, style: React.CSSProperties }) => {
+    const item = plan.checklist[index];
+    return (
+      <div style={style} className="pr-2">
+        <div 
+          className={`flex items-center group gap-3 p-3 rounded-xl border transition-all duration-200 h-full ${
+            item.completed ? 'bg-indigo-50/30 border-indigo-100' : 'bg-white border-slate-100 hover:border-indigo-200'
+          }`}
+        >
+          <button onClick={() => toggleTask(item.id)} className="flex-shrink-0 transition-transform hover:scale-110">
+            {item.completed ? (
+              <CheckCircle2 className="text-indigo-600" size={20} />
+            ) : (
+              <Circle className="text-slate-300" size={20} />
+            )}
+          </button>
+          <span className={`flex-1 text-sm ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}`}>
+            {item.task}
+          </span>
+          <button 
+            onClick={() => deleteTask(item.id)} 
+            className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 transition-all no-print"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <motion.div 
@@ -88,38 +116,15 @@ const Checklist: React.FC<ChecklistProps> = ({ plan, onUpdate }) => {
           </button>
         </form>
 
-        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-          <AnimatePresence>
-            {plan.checklist.map((item) => (
-              <motion.div 
-                key={item.id} 
-                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                animate={{ opacity: 1, height: 'auto', marginBottom: 8 }}
-                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                transition={{ duration: 0.2 }}
-                className={`flex items-center group gap-3 p-3 rounded-xl border transition-all duration-200 ${
-                  item.completed ? 'bg-indigo-50/30 border-indigo-100' : 'bg-white border-slate-100 hover:border-indigo-200'
-                }`}
-              >
-                <button onClick={() => toggleTask(item.id)} className="flex-shrink-0 transition-transform hover:scale-110">
-                  {item.completed ? (
-                    <CheckCircle2 className="text-indigo-600" size={20} />
-                  ) : (
-                    <Circle className="text-slate-300" size={20} />
-                  )}
-                </button>
-                <span className={`flex-1 text-sm ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}`}>
-                  {item.task}
-                </span>
-                <button 
-                  onClick={() => deleteTask(item.id)} 
-                  className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 transition-all no-print"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+        <div className="h-[400px] w-full">
+          <List
+            rowCount={plan.checklist.length}
+            rowHeight={60}
+            rowComponent={Row}
+            rowProps={{}}
+            style={{ height: 400, width: '100%' }}
+            className="custom-scrollbar"
+          />
         </div>
       </div>
 
@@ -139,7 +144,7 @@ const Checklist: React.FC<ChecklistProps> = ({ plan, onUpdate }) => {
                 max="2000" 
                 step="10"
                 value={plan.guestCount} 
-                onChange={(e) => onUpdate({ ...plan, guestCount: parseInt(e.target.value) })}
+                onChange={(e) => updatePlan({ guestCount: parseInt(e.target.value) })}
                 className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
             </div>
@@ -155,7 +160,7 @@ const Checklist: React.FC<ChecklistProps> = ({ plan, onUpdate }) => {
                 max="30" 
                 step="1"
                 value={plan.contingencyPercent} 
-                onChange={(e) => onUpdate({ ...plan, contingencyPercent: parseInt(e.target.value) })}
+                onChange={(e) => updatePlan({ contingencyPercent: parseInt(e.target.value) })}
                 className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
             </div>

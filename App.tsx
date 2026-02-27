@@ -31,6 +31,7 @@ import UpgradeModal from './src/components/UpgradeModal';
 import { Plan, EventType, WeddingPlan, Snapshot, RSVP } from './types';
 import { authService } from './src/services/authService';
 import { databaseService } from './src/services/databaseService';
+import { usePlanStore } from './src/store/usePlanStore';
 import { 
   Plus, 
   ArrowLeft, 
@@ -76,8 +77,13 @@ const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState('home');
   const [viewMode, setViewMode] = useState<ViewMode>('BUDGET');
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
+  
+  const plans = usePlanStore(state => state.plans);
+  const currentPlan = usePlanStore(state => state.currentPlan);
+  const setPlans = usePlanStore(state => state.setPlans);
+  const setCurrentPlan = usePlanStore(state => state.setCurrentPlan);
+  const updatePlanStore = usePlanStore(state => state.updatePlan);
+
   const [isCreatingWedding, setIsCreatingWedding] = useState(false);
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -194,7 +200,7 @@ const App: React.FC = () => {
 
   const handleUpdatePlan = async (updatedPlan: Plan) => {
     // Optimistic UI update
-    setPlans(prev => prev.map(p => p.id === updatedPlan.id ? updatedPlan : p));
+    setPlans(plans.map(p => p.id === updatedPlan.id ? updatedPlan : p));
     setCurrentPlan(updatedPlan);
     
     try {

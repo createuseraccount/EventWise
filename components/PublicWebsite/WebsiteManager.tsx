@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { Plan, PublicPageConfig, RSVP } from '../../types';
 import { Globe, Eye, Copy, CheckCircle2, Settings, Image as ImageIcon, MapPin, Calendar, Clock, Users, ExternalLink, Share2 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { List } from 'react-window';
+import { usePlanStore } from '../../src/store/usePlanStore';
 
 interface WebsiteManagerProps {
-  plan: Plan;
-  onUpdate: (updatedPlan: Plan) => void;
   onViewLive: () => void;
 }
 
-const WebsiteManager: React.FC<WebsiteManagerProps> = ({ plan, onUpdate, onViewLive }) => {
+const WebsiteManager: React.FC<WebsiteManagerProps> = ({ onViewLive }) => {
+  const plan = usePlanStore(state => state.currentPlan);
+  const updatePlan = usePlanStore(state => state.updatePlan);
   const [activeTab, setActiveTab] = useState<'SETTINGS' | 'RSVPS'>('SETTINGS');
   const [copied, setCopied] = useState(false);
+
+  if (!plan) return null;
 
   const config = plan.publicPageConfig || {
     isEnabled: false,
@@ -22,8 +27,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ plan, onUpdate, onViewL
   };
 
   const updateConfig = (updates: Partial<PublicPageConfig>) => {
-    onUpdate({
-      ...plan,
+    updatePlan({
       publicPageConfig: { ...config, ...updates }
     });
   };
@@ -38,6 +42,39 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ plan, onUpdate, onViewL
   const acceptedCount = rsvps.filter(r => r.status === 'ACCEPTED').reduce((acc, r) => acc + r.guests, 0);
   const declinedCount = rsvps.filter(r => r.status === 'DECLINED').length;
   const pendingCount = rsvps.filter(r => r.status === 'MAYBE').length;
+
+  const RsvpRow = ({ index, style }: { index: number, style: React.CSSProperties }) => {
+    const rsvp = rsvps[index];
+    return (
+      <div style={style} className="pr-2">
+        <div className="flex items-start justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-100 transition-colors h-full">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h4 className="font-bold text-slate-900">{rsvp.name}</h4>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
+                rsvp.status === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-700' :
+                rsvp.status === 'DECLINED' ? 'bg-rose-100 text-rose-700' :
+                'bg-amber-100 text-amber-700'
+              }`}>
+                {rsvp.status}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 flex items-center gap-2">
+              {rsvp.email} • {rsvp.guests} Guest{rsvp.guests > 1 ? 's' : ''}
+            </p>
+            {rsvp.dietaryRestrictions && (
+              <div className="mt-2 text-xs bg-white p-2 rounded-lg border border-slate-200 inline-block text-slate-600">
+                <span className="font-bold">Dietary:</span> {rsvp.dietaryRestrictions}
+              </div>
+            )}
+          </div>
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            {new Date(rsvp.timestamp).toLocaleDateString()}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -250,34 +287,15 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ plan, onUpdate, onViewL
                   <p className="text-xs text-slate-400">Share your website link to start collecting responses.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {rsvps.map((rsvp) => (
-                    <div key={rsvp.id} className="flex items-start justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-100 transition-colors">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-bold text-slate-900">{rsvp.name}</h4>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
-                            rsvp.status === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-700' :
-                            rsvp.status === 'DECLINED' ? 'bg-rose-100 text-rose-700' :
-                            'bg-amber-100 text-amber-700'
-                          }`}>
-                            {rsvp.status}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 flex items-center gap-2">
-                          {rsvp.email} • {rsvp.guests} Guest{rsvp.guests > 1 ? 's' : ''}
-                        </p>
-                        {rsvp.dietaryRestrictions && (
-                          <div className="mt-2 text-xs bg-white p-2 rounded-lg border border-slate-200 inline-block text-slate-600">
-                            <span className="font-bold">Dietary:</span> {rsvp.dietaryRestrictions}
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        {new Date(rsvp.timestamp).toLocaleDateString()}
-                      </div>
-                    </div>
-                  ))}
+                <div className="h-[500px] w-full">
+                  <List
+                    rowCount={rsvps.length}
+                    rowHeight={100}
+                    rowComponent={RsvpRow}
+                    rowProps={{}}
+                    style={{ height: 500, width: '100%' }}
+                    className="custom-scrollbar"
+                  />
                 </div>
               )}
             </div>
