@@ -3,6 +3,7 @@ import { Plan, RSVP, PaymentSchedule, ChecklistItem } from '../../types';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { CURRENCY } from '../../constants';
 import { CheckCircle, Clock, Users, IndianRupee, Calendar, CreditCard } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface DashboardAnalyticsProps {
   plans: Plan[];
@@ -93,7 +94,12 @@ const DashboardAnalytics: React.FC<DashboardAnalyticsProps> = ({ plans }) => {
     <div className="space-y-6">
       {/* Top Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4"
+        >
           <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
             <Calendar size={24} />
           </div>
@@ -101,9 +107,14 @@ const DashboardAnalytics: React.FC<DashboardAnalyticsProps> = ({ plans }) => {
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Plans</p>
             <p className="text-2xl font-black text-slate-900">{plans.length}</p>
           </div>
-        </div>
+        </motion.div>
         
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4"
+        >
           <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
             <IndianRupee size={24} />
           </div>
@@ -114,15 +125,22 @@ const DashboardAnalytics: React.FC<DashboardAnalyticsProps> = ({ plans }) => {
               <p className="text-xs font-bold text-slate-400">/ {CURRENCY}{totalBudget.toLocaleString('en-IN')}</p>
             </div>
             <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-              <div 
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${budgetProgress}%` }}
+                transition={{ duration: 1, delay: 0.5 }}
                 className={`h-full rounded-full ${budgetProgress > 90 ? 'bg-rose-500' : 'bg-emerald-500'}`} 
-                style={{ width: `${budgetProgress}%` }}
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4"
+        >
           <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center flex-shrink-0">
             <CheckCircle size={24} />
           </div>
@@ -130,12 +148,17 @@ const DashboardAnalytics: React.FC<DashboardAnalyticsProps> = ({ plans }) => {
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pending Tasks</p>
             <p className="text-2xl font-black text-slate-900">{pendingTasks}</p>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart */}
-        <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm lg:col-span-1">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm lg:col-span-1"
+        >
           <h3 className="text-lg font-bold text-slate-900 mb-6">Budget Distribution</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -161,10 +184,15 @@ const DashboardAnalytics: React.FC<DashboardAnalyticsProps> = ({ plans }) => {
               </PieChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* Upcoming Deadlines / Payments */}
-        <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm lg:col-span-1">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm lg:col-span-1"
+        >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-slate-900">Upcoming Payments</h3>
             <span className="px-2.5 py-1 bg-rose-100 text-rose-600 rounded-full text-xs font-bold">Next 7 Days</span>
@@ -197,10 +225,15 @@ const DashboardAnalytics: React.FC<DashboardAnalyticsProps> = ({ plans }) => {
               <p className="text-xs text-slate-500 mt-1">No payments due in the next 7 days.</p>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Recent RSVPs */}
-        <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm lg:col-span-1">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm lg:col-span-1"
+        >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-slate-900">Recent RSVPs</h3>
             <span className="px-2.5 py-1 bg-indigo-100 text-indigo-600 rounded-full text-xs font-bold">Live</span>
@@ -245,7 +278,7 @@ const DashboardAnalytics: React.FC<DashboardAnalyticsProps> = ({ plans }) => {
               <p className="text-xs text-slate-500 mt-1">Share your public website to get started.</p>
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { CheckCircle, Zap, Shield, Layout, ArrowRight, Star, Menu, X, Clock, Globe, Users, Store, Plane, Check, Quote, ChevronDown } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -18,7 +19,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">EW</div>
-              <span className="font-bold text-xl tracking-tight">EventWise</span>
+              <span className="font-serif font-bold text-xl tracking-tight">EventWise</span>
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
@@ -55,27 +56,52 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-semibold uppercase tracking-wide mb-6 border border-indigo-100">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-semibold uppercase tracking-wide mb-6 border border-indigo-100"
+        >
           <span className="flex h-2 w-2 rounded-full bg-indigo-600"></span>
           v2.0 Now Available
-        </div>
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight">
+        </motion.div>
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight"
+        >
           Master your events <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">without the chaos.</span>
-        </h1>
-        <p className="mt-4 max-w-2xl mx-auto text-xl text-slate-500 mb-10">
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-4 max-w-2xl mx-auto text-xl text-slate-500 mb-10"
+        >
           The all-in-one workspace for professional event planning. Budgeting, checklists, and vendor management in one beautiful interface.
-        </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
+        </motion.p>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex flex-col sm:flex-row justify-center gap-4"
+        >
           <button onClick={onSignUp} className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all hover:-translate-y-1 flex items-center justify-center gap-2">
             Start Planning for Free <ArrowRight size={20} />
           </button>
           <button onClick={onLogin} className="px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all hover:-translate-y-1">
             View Demo
           </button>
-        </div>
+        </motion.div>
         
-        <div className="mt-16 relative rounded-[32px] border border-slate-200 shadow-2xl overflow-hidden bg-slate-50 max-w-5xl mx-auto group">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          className="mt-16 relative rounded-[32px] border border-slate-200 shadow-2xl overflow-hidden bg-slate-50 max-w-5xl mx-auto group"
+        >
            <div className="absolute top-0 left-0 right-0 h-10 bg-white border-b border-slate-200 flex items-center px-4 gap-2 z-20">
              <div className="w-3 h-3 rounded-full bg-rose-400"></div>
              <div className="w-3 h-3 rounded-full bg-amber-400"></div>
@@ -139,7 +165,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
               </div>
            </div>
            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent h-40 bottom-0 top-auto z-10"></div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Features Section */}
@@ -219,21 +245,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
             <TestimonialCard 
               quote="This app completely changed how I run my wedding planning business. The seating mapper alone saves me hours of headache per client."
-              author="Sarah Jenkins"
+              author="Priya Sharma"
               role="Professional Wedding Planner"
-              image="https://picsum.photos/seed/sarah/100/100"
+              image="https://picsum.photos/seed/priya/100/100"
             />
             <TestimonialCard 
               quote="We used EventWise for our own wedding. Being able to track the budget, RSVPs, and vendor contracts in one place kept us sane!"
-              author="Michael & David"
+              author="Rahul & Anjali"
               role="Happy Couple"
               image="https://picsum.photos/seed/couple/100/100"
             />
             <TestimonialCard 
               quote="The PDF exports are beautiful and professional. I hand the run sheet to my day-of coordinators and everything runs flawlessly."
-              author="Elena Rodriguez"
+              author="Neha Patel"
               role="Corporate Event Director"
-              image="https://picsum.photos/seed/elena/100/100"
+              image="https://picsum.photos/seed/neha/100/100"
             />
           </div>
         </div>
@@ -359,7 +385,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-indigo-600 rounded-md flex items-center justify-center text-white font-bold text-xs">EW</div>
-            <span className="font-bold text-slate-900">EventWise</span>
+            <span className="font-serif font-bold text-slate-900">EventWise</span>
           </div>
           <div className="flex gap-8 text-sm text-slate-500">
             <button onClick={() => window.location.hash = 'privacy'} className="hover:text-indigo-600">Privacy</button>
@@ -376,7 +402,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignUp }) => {
 };
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
-  <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+  <motion.div 
+    whileHover={{ y: -5 }}
+    className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
+  >
     <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mb-6">
       {icon}
     </div>
@@ -384,11 +413,14 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, titl
     <p className="text-slate-500 leading-relaxed">
       {description}
     </p>
-  </div>
+  </motion.div>
 );
 
 const TestimonialCard = ({ quote, author, role, image }: { quote: string, author: string, role: string, image: string }) => (
-  <div className="bg-slate-800/50 backdrop-blur-sm p-8 rounded-[32px] border border-slate-700 flex flex-col">
+  <motion.div 
+    whileHover={{ scale: 1.02 }}
+    className="bg-slate-800/50 backdrop-blur-sm p-8 rounded-[32px] border border-slate-700 flex flex-col"
+  >
     <Quote className="text-indigo-400 mb-6 opacity-50" size={32} />
     <p className="text-slate-300 text-lg leading-relaxed mb-8 flex-1">
       "{quote}"
@@ -400,7 +432,7 @@ const TestimonialCard = ({ quote, author, role, image }: { quote: string, author
         <p className="text-sm text-slate-400">{role}</p>
       </div>
     </div>
-  </div>
+  </motion.div>
 );
 
 const PricingFeature = ({ text, included, light = false }: { text: string, included: boolean, light?: boolean }) => (

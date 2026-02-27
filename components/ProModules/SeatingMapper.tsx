@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Plan, Table } from '../../types';
 import { Layout, Users, Plus, Trash2, Edit2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface SeatingMapperProps {
   plan: Plan;
@@ -35,7 +36,12 @@ const SeatingMapper: React.FC<SeatingMapperProps> = ({ plan, onUpdate }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black text-slate-900">Seating Mapper</h2>
@@ -47,9 +53,17 @@ const SeatingMapper: React.FC<SeatingMapperProps> = ({ plan, onUpdate }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {tables.map((table) => (
-          <div key={table.id} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl transition-all group relative">
-            <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <AnimatePresence>
+          {tables.map((table) => (
+            <motion.div 
+              key={table.id} 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl transition-all group relative"
+            >
+              <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button onClick={() => removeTable(table.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 size={16} /></button>
             </div>
             
@@ -86,19 +100,24 @@ const SeatingMapper: React.FC<SeatingMapperProps> = ({ plan, onUpdate }) => {
                   className="w-full h-24 bg-slate-50 border-none rounded-2xl p-3 text-xs text-slate-600 outline-none resize-none"
                />
             </div>
-          </div>
+          </motion.div>
         ))}
+        </AnimatePresence>
 
         {tables.length === 0 && (
-          <div className="col-span-full py-20 border-2 border-dashed border-slate-200 rounded-[40px] text-center space-y-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="col-span-full py-20 border-2 border-dashed border-slate-200 rounded-[40px] text-center space-y-4"
+          >
              <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto text-slate-300">
                <Layout size={32} />
              </div>
              <p className="text-slate-500 font-medium">No tables added yet. Start your floor plan!</p>
-          </div>
+          </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

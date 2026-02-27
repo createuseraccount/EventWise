@@ -3,6 +3,7 @@ import React from 'react';
 import { Plan, GuestStats, GiftConfig } from '../../types';
 import { Users, Home, Smile, Briefcase, Crown, Utensils, Layout, Gift, PieChart } from 'lucide-react';
 import { CURRENCY } from '../../constants';
+import { motion } from 'motion/react';
 
 interface GuestIntelligenceProps {
   plan: Plan;
@@ -39,7 +40,12 @@ const GuestIntelligence: React.FC<GuestIntelligenceProps> = ({ plan, onUpdate })
   const tablesNeeded = Math.ceil(plan.guestCount / 8);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-8"
+    >
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <CategoryCard 
           icon={<Home className="text-rose-500" />} 
@@ -75,7 +81,12 @@ const GuestIntelligence: React.FC<GuestIntelligenceProps> = ({ plan, onUpdate })
         />
       </div>
 
-      <div className="bg-white p-8 rounded-3xl border shadow-sm">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="bg-white p-8 rounded-3xl border shadow-sm"
+      >
         <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
           <PieChart className="text-indigo-600" /> Guest List Intelligence
         </h3>
@@ -102,9 +113,14 @@ const GuestIntelligence: React.FC<GuestIntelligenceProps> = ({ plan, onUpdate })
             description="Estimated total cost for return gifts across all categories."
           />
         </div>
-      </div>
+      </motion.div>
 
-      <div className="p-6 bg-indigo-50 rounded-2xl border border-indigo-100">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+        className="p-6 bg-indigo-50 rounded-2xl border border-indigo-100"
+      >
         <div className="flex items-start gap-4">
           <div className="p-3 bg-white rounded-xl text-indigo-600 shadow-sm">
             <Users size={24} />
@@ -117,13 +133,16 @@ const GuestIntelligence: React.FC<GuestIntelligenceProps> = ({ plan, onUpdate })
             </p>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
 const CategoryCard = ({ icon, label, value, onChange, giftCost, onGiftChange }: any) => (
-  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:border-indigo-200 transition-all">
+  <motion.div 
+    whileHover={{ y: -5 }}
+    className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:border-indigo-200 transition-all"
+  >
     <div className="flex items-center gap-3 mb-4">
       <div className="p-2 bg-slate-50 rounded-lg">{icon}</div>
       <span className="font-bold text-slate-800">{label}</span>
@@ -151,7 +170,7 @@ const CategoryCard = ({ icon, label, value, onChange, giftCost, onGiftChange }: 
         </div>
       </div>
     </div>
-  </div>
+  </motion.div>
 );
 
 const IntelligenceStat = ({ icon, label, value, suffix, description }: any) => (

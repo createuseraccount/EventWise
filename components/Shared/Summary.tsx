@@ -4,6 +4,7 @@ import { Plan, BudgetCategory, BudgetSide, WeddingPlan, Snapshot } from '../../t
 import { CURRENCY } from '../../constants';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Download, Printer, Plus, Trash2, Edit3, Check, FileSpreadsheet, FileText, Heart, User, Users, History, Undo2, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface SummaryProps {
   plan: Plan;
@@ -113,26 +114,51 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
   const sideSplit = isWedding && (plan as WeddingPlan).sideSplitEnabled;
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-4 md:space-y-6"
+    >
       {/* Header Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 px-1 md:px-0">
-        <div className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center"
+        >
           <p className="text-[10px] md:text-sm text-slate-500 font-black uppercase tracking-widest mb-1">Total Estimated</p>
           <h2 className="text-2xl md:text-3xl font-black text-indigo-600">{CURRENCY}{Math.round(total).toLocaleString('en-IN')}</h2>
-        </div>
-        <div className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center">
+        </motion.div>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center"
+        >
           <p className="text-[10px] md:text-sm text-slate-500 font-black uppercase tracking-widest mb-1">Per Guest</p>
           <h2 className="text-xl md:text-2xl font-black text-slate-900">{CURRENCY}{Math.round(perGuest).toLocaleString('en-IN')}</h2>
-        </div>
-        <div className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center">
+        </motion.div>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-center"
+        >
           <p className="text-[10px] md:text-sm text-slate-500 font-black uppercase tracking-widest mb-1">Guest Count</p>
           <h2 className="text-xl md:text-2xl font-black text-slate-900">{plan.guestCount} People</h2>
-        </div>
+        </motion.div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <div className="space-y-4 md:space-y-6">
-          <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm h-fit">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm h-fit"
+          >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base md:text-lg font-black uppercase tracking-tight">Allocation</h3>
               <div className="no-print flex gap-2">
@@ -210,18 +236,28 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
                  </div>
               </div>
             )}
-          </div>
+          </motion.div>
 
-          <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm no-print">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm no-print"
+          >
             <h3 className="text-base md:text-lg font-black uppercase tracking-tight mb-4">Share Plan</h3>
             <div className="grid grid-cols-2 gap-3">
               <button onClick={handleExportCSV} className="flex items-center justify-center gap-2 p-3 bg-emerald-50 text-emerald-700 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-100"><FileSpreadsheet size={16} /> CSV</button>
               <button onClick={handlePrintPDF} className="flex items-center justify-center gap-2 p-3 bg-rose-50 text-rose-700 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100"><FileText size={16} /> PDF</button>
             </div>
-          </div>
+          </motion.div>
         </div>
 
-        <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+          className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm"
+        >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-base md:text-lg font-black uppercase tracking-tight">Line Items</h3>
             <button 
@@ -308,9 +344,9 @@ const Summary: React.FC<SummaryProps> = ({ plan, onUpdate }) => {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

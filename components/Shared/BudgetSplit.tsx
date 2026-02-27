@@ -3,6 +3,7 @@ import React from 'react';
 import { Plan, WeddingPlan, BudgetSide } from '../../types';
 import { CURRENCY } from '../../constants';
 import { Users, Heart, User, TrendingUp, Info } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface BudgetSplitProps {
   plan: WeddingPlan;
@@ -38,7 +39,12 @@ const BudgetSplit: React.FC<BudgetSplitProps> = ({ plan }) => {
   const groomPercent = 100 - bridePercent;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-8"
+    >
       <div className="bg-white p-8 rounded-3xl border shadow-sm">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -74,7 +80,12 @@ const BudgetSplit: React.FC<BudgetSplitProps> = ({ plan }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Bride Card */}
-          <div className="bg-rose-50/30 p-6 rounded-3xl border border-rose-100 space-y-4">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="bg-rose-50/30 p-6 rounded-3xl border border-rose-100 space-y-4"
+          >
             <div className="flex items-center gap-3">
               <div className="p-2 bg-rose-500 text-white rounded-xl">
                 <Heart size={20} />
@@ -95,10 +106,15 @@ const BudgetSplit: React.FC<BudgetSplitProps> = ({ plan }) => {
                 <span className="text-3xl font-black text-rose-600">{CURRENCY}{Math.round(brideFinal).toLocaleString('en-IN')}</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Groom Card */}
-          <div className="bg-indigo-50/30 p-6 rounded-3xl border border-indigo-100 space-y-4">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="bg-indigo-50/30 p-6 rounded-3xl border border-indigo-100 space-y-4"
+          >
             <div className="flex items-center gap-3">
               <div className="p-2 bg-indigo-600 text-white rounded-xl">
                 <User size={20} />
@@ -119,11 +135,16 @@ const BudgetSplit: React.FC<BudgetSplitProps> = ({ plan }) => {
                 <span className="text-3xl font-black text-indigo-600">{CURRENCY}{Math.round(groomFinal).toLocaleString('en-IN')}</span>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      <div className="p-6 bg-slate-100 rounded-2xl border border-slate-200">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+        className="p-6 bg-slate-100 rounded-2xl border border-slate-200"
+      >
         <div className="flex items-start gap-4">
           <div className="p-3 bg-white rounded-xl text-slate-600 shadow-sm">
             <Info size={24} />
@@ -136,8 +157,8 @@ const BudgetSplit: React.FC<BudgetSplitProps> = ({ plan }) => {
             </p>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Plan, ChecklistItem } from '../../types';
 import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ChecklistProps {
   plan: Plan;
@@ -48,7 +49,12 @@ const Checklist: React.FC<ChecklistProps> = ({ plan, onUpdate }) => {
   const progressPercent = plan.checklist.length ? Math.round((completedCount / plan.checklist.length) * 100) : 0;
 
   return (
-    <div className="space-y-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
       <div className="bg-white p-6 rounded-2xl border shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -83,31 +89,37 @@ const Checklist: React.FC<ChecklistProps> = ({ plan, onUpdate }) => {
         </form>
 
         <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-          {plan.checklist.map((item) => (
-            <div 
-              key={item.id} 
-              className={`flex items-center group gap-3 p-3 rounded-xl border transition-all duration-200 ${
-                item.completed ? 'bg-indigo-50/30 border-indigo-100' : 'bg-white border-slate-100 hover:border-indigo-200'
-              }`}
-            >
-              <button onClick={() => toggleTask(item.id)} className="flex-shrink-0 transition-transform hover:scale-110">
-                {item.completed ? (
-                  <CheckCircle2 className="text-indigo-600" size={20} />
-                ) : (
-                  <Circle className="text-slate-300" size={20} />
-                )}
-              </button>
-              <span className={`flex-1 text-sm ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}`}>
-                {item.task}
-              </span>
-              <button 
-                onClick={() => deleteTask(item.id)} 
-                className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 transition-all no-print"
+          <AnimatePresence>
+            {plan.checklist.map((item) => (
+              <motion.div 
+                key={item.id} 
+                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                animate={{ opacity: 1, height: 'auto', marginBottom: 8 }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                transition={{ duration: 0.2 }}
+                className={`flex items-center group gap-3 p-3 rounded-xl border transition-all duration-200 ${
+                  item.completed ? 'bg-indigo-50/30 border-indigo-100' : 'bg-white border-slate-100 hover:border-indigo-200'
+                }`}
               >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          ))}
+                <button onClick={() => toggleTask(item.id)} className="flex-shrink-0 transition-transform hover:scale-110">
+                  {item.completed ? (
+                    <CheckCircle2 className="text-indigo-600" size={20} />
+                  ) : (
+                    <Circle className="text-slate-300" size={20} />
+                  )}
+                </button>
+                <span className={`flex-1 text-sm ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}`}>
+                  {item.task}
+                </span>
+                <button 
+                  onClick={() => deleteTask(item.id)} 
+                  className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 transition-all no-print"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -164,7 +176,7 @@ const Checklist: React.FC<ChecklistProps> = ({ plan, onUpdate }) => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

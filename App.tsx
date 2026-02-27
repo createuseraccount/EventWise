@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion } from 'motion/react';
 import Layout from './components/Layout';
 import LandingPage from './components/LandingPage';
 import Login from './components/Auth/Login';
@@ -309,7 +310,7 @@ const App: React.FC = () => {
           <nav className="bg-white border-b border-slate-100 px-4 py-4 flex justify-between items-center">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActiveTab('home'); window.location.hash = ''; }}>
               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">EW</div>
-              <span className="font-bold text-xl tracking-tight">EventWise</span>
+              <span className="font-serif font-bold text-xl tracking-tight">EventWise</span>
             </div>
             <button onClick={() => { setActiveTab('home'); window.location.hash = ''; }} className="text-sm font-bold text-slate-500 hover:text-indigo-600">Back to Home</button>
           </nav>
@@ -458,8 +459,15 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              {filteredPlans.map(plan => (
-                <div key={plan.id} onClick={() => setCurrentPlan(plan)} className="group bg-white p-5 md:p-7 rounded-[40px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col">
+              {filteredPlans.map((plan, index) => (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  key={plan.id} 
+                  onClick={() => setCurrentPlan(plan)} 
+                  className="group bg-white p-5 md:p-7 rounded-[40px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col"
+                >
                   <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest self-start ${plan.type === EventType.WEDDING ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-600'}`}>{EVENT_TYPE_ICONS[plan.type]}{plan.type}</div>
                   <h3 className="text-xl font-black text-slate-900 mt-5 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">{plan.name}</h3>
                   <p className="text-xs text-slate-400 font-bold mb-6 uppercase tracking-wider">{plan.guestCount} Guests • {plan.city}</p>
@@ -467,7 +475,7 @@ const App: React.FC = () => {
                     <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Est. Budget</p><p className="text-xl font-black text-slate-900">{CURRENCY}{Math.round(plan.guestCount * 2500).toLocaleString('en-IN')}</p></div>
                     <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm"><ExternalLink size={20} /></div>
                   </div>
-                </div>
+                </motion.div>
               ))}
               {filteredPlans.length === 0 && (
                 <div className="col-span-full py-20 text-center space-y-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[40px]">

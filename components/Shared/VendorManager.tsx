@@ -7,6 +7,7 @@ import {
   Truck, Mail, Bed, MoreHorizontal, CheckCircle2, Circle, 
   AlertTriangle, CreditCard, ChevronRight, Info, Plus, Trash2
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface VendorManagerProps {
   plan: Plan;
@@ -84,7 +85,12 @@ const VendorManager: React.FC<VendorManagerProps> = ({ plan, onUpdate }) => {
   const phases: VendorPhase[] = ['Planning', 'Confirmation', 'Finalization', 'Event Day'];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 md:gap-8 animate-in fade-in duration-500">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col lg:flex-row gap-6 md:gap-8"
+    >
       <div className="w-full lg:w-72 space-y-2">
         <h3 className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 md:mb-4">Vendors</h3>
         <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible no-scrollbar pb-2 md:pb-0 px-2 lg:px-0">
@@ -118,7 +124,13 @@ const VendorManager: React.FC<VendorManagerProps> = ({ plan, onUpdate }) => {
       </div>
 
       <div className="flex-1 space-y-6">
-        <div className="bg-white p-5 md:p-8 rounded-[28px] md:rounded-[32px] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between gap-6">
+        <motion.div 
+          key={activeCategory}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white p-5 md:p-8 rounded-[28px] md:rounded-[32px] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between gap-6"
+        >
           <div className="flex items-center gap-4 md:gap-6">
             <div className={`w-16 h-16 md:w-20 md:h-20 rounded-[22px] md:rounded-3xl flex items-center justify-center text-white shadow-lg flex-shrink-0 ${completionPercent === 100 ? 'bg-emerald-500 shadow-emerald-100' : 'bg-indigo-600 shadow-indigo-100'}`}>
               <div className="text-center">
@@ -142,12 +154,18 @@ const VendorManager: React.FC<VendorManagerProps> = ({ plan, onUpdate }) => {
               <span className="text-[10px] md:text-sm font-bold text-slate-400 mb-1">paid</span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {(hasGuestCountWarning || budgetWarning) && (
-          <div className="space-y-3">
-            {hasGuestCountWarning && (
-              <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-2xl gap-3">
+        <AnimatePresence>
+          {(hasGuestCountWarning || budgetWarning) && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-3"
+            >
+              {hasGuestCountWarning && (
+                <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-2xl gap-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-amber-500 text-white rounded-xl shadow-lg shadow-amber-100 flex-shrink-0"><AlertTriangle size={18} /></div>
                   <div className="text-xs">
@@ -167,8 +185,9 @@ const VendorManager: React.FC<VendorManagerProps> = ({ plan, onUpdate }) => {
                 </div>
               </div>
             )}
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           <div className="xl:col-span-8 space-y-6">
@@ -284,7 +303,7 @@ const VendorManager: React.FC<VendorManagerProps> = ({ plan, onUpdate }) => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Plan, TimelineItem, ChecklistItem } from '../../types';
 import { Clock, Plus, Trash2, ArrowUp, ArrowDown, Star, ListPlus, CheckCircle2, Edit } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface TimelineProps {
   plan: Plan;
@@ -106,7 +107,12 @@ const Timeline: React.FC<TimelineProps> = ({ plan, onUpdate }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
       <div className="bg-white p-6 rounded-2xl border shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -130,18 +136,30 @@ const Timeline: React.FC<TimelineProps> = ({ plan, onUpdate }) => {
           <div className="absolute left-[19px] top-4 bottom-4 w-0.5 bg-slate-100 no-print" />
 
           {plan.timeline.length === 0 && (
-            <div className="text-center py-10 text-slate-400">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-10 text-slate-400"
+            >
               <Clock size={40} className="mx-auto mb-2 opacity-20" />
               <p className="text-sm font-medium">Your timeline is empty. Start adding moments!</p>
-            </div>
+            </motion.div>
           )}
 
-          {plan.timeline.map((item, index) => {
-            const isSynced = item.syncedTaskId && plan.checklist.some(t => t.id === item.syncedTaskId);
-            
-            return (
-              <div key={item.id} className="relative pl-12 group">
-                {/* Marker */}
+          <AnimatePresence>
+            {plan.timeline.map((item, index) => {
+              const isSynced = item.syncedTaskId && plan.checklist.some(t => t.id === item.syncedTaskId);
+              
+              return (
+                <motion.div 
+                  key={item.id} 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative pl-12 group"
+                >
+                  {/* Marker */}
                 <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border-4 border-white shadow-sm flex items-center justify-center z-10 transition-colors ${
                   item.isImportant ? 'bg-amber-400 text-white' : 'bg-indigo-600 text-white'
                 }`}>
@@ -219,10 +237,11 @@ const Timeline: React.FC<TimelineProps> = ({ plan, onUpdate }) => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </AnimatePresence>
+      </div>
 
         {isAdding && (
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -336,7 +355,7 @@ const Timeline: React.FC<TimelineProps> = ({ plan, onUpdate }) => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
